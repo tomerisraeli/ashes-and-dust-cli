@@ -1,28 +1,37 @@
-from rich.console import Console
+import typer
+import rich
+
+app = typer.Typer()
+console = rich.console.Console()
 
 
-class AshesAndDust(Console):
+@app.command()
+def download(
+        path: str,
+        start_date: str,
+        end_date: str
+):
+    """
+    download the data needed
+    :param start_date:  the first date to download data to
+    :param end_date:    the last date to download data to
+    :param path:        a path to download the data to, if the data already exists it won't be downloaded
+    """
 
-    def __init__(self):
-        super().__init__()
-
-        # list of all the spatial data handlers
-        self.spatial_data_handlers = []
-        # list of all the timed data handlers
-        self.timed_data_handlers = []
-
-    def start_cli(self):
-        """
-        start the cli of the project
-        :return: None
-        """
-
-        self.print("Welcome to Ashes And Dust!", style="bold")
-
-    def print_data_handlers(self):
-        pass
+    console.print(f"[bold]starting to download data to '{path}'")
 
 
-if __name__ == '__main__':
-    app = AshesAndDust()
-    app.start_cli()
+@app.command()
+def preprocess(
+        path: str
+):
+    """
+    preprocess the data needed
+    :parameter path: a directory with the data to preprocess
+    """
+
+    console.print(f"[bold]starting to preprocess data at '{path}'")
+
+
+if __name__ == "__main__":
+    app()
