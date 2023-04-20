@@ -13,13 +13,13 @@ def download(
 ):
     """
     download the data needed
-    :param start_date:  the first date to download data to
-    :param end_date:    the last date to download data to
+    :param start_date:  the first date to download data to. format: DD/MM/YYYY or YYYY for 01.01.YYYY
+    :param end_date:    the last date to download data to. format: DD/MM/YYYY or YYYY for 31.12.YYYY
     :param path:        a path to download the data to, if the data already exists it won't be downloaded
     """
 
     console.print(f"[bold]starting to download data to '{path}'")
-
+    con
 
 @app.command()
 def preprocess(
