@@ -8,3 +8,7 @@ before working on this project you have to install 2 libraries
 ## help
 to read about the diffrent options, run
 ```python aad.py --help```
+
+## Project Notations
+### dates
+you should use the ```datetime``` python module for handling dates. the default format is DD/MM/YYYY
