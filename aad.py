@@ -1,9 +1,8 @@
 import typer
 import rich
 from datetime import datetime
-
-from utils.date_parser import date_parser
 from utils import constants
+import ashes_and_dust as aad
 
 app = typer.Typer()
 console = rich.console.Console()
@@ -33,9 +32,8 @@ def download(
     :parameter end_date:    the last date to download data to
     :parameter path:        a path to download the data to, if the data already exists it won't be downloaded
     """
-    console.print(f"[bold]starting to download data to '{path}'")
-    console.print(f"from {start_date.date()} to {end_date.date()}")
-    console.print(f"overwrite: {overwrite}")
+
+    aad.download(path, start_date, end_date, overwrite)
 
 
 @app.command()
