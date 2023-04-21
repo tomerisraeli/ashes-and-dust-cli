@@ -1,7 +1,9 @@
 import typer
 import rich
+from datetime import datetime
 
 from utils.date_parser import date_parser
+from utils import constants
 
 app = typer.Typer()
 console = rich.console.Console()
@@ -9,20 +11,31 @@ console = rich.console.Console()
 
 @app.command()
 def download(
-        path: str,
-        start_date: str,
-        end_date: str
+        path: str = typer.Argument(...,
+                                   help="the path to download data to"),
+        start_date: datetime = typer.Argument(...,
+                                              help="the first date to download data to",
+                                              formats=constants.DATE_FORMATS
+                                              ),
+        end_date: datetime = typer.Argument(...,
+                                            help="the last date to download data to",
+                                            formats=constants.DATE_FORMATS
+                                            ),
+        overwrite: bool = typer.Option(False,
+                                       help="overwrite the data if its already exits at the given path")
 ):
     """
     download the data needed
-    :param start_date:  the first date to download data to. format: DD/MM/YYYY
-    :param end_date:    the last date to download data to. format: DD/MM/YYYY
-    :param path:        a path to download the data to, if the data already exists it won't be downloaded
-    """
 
-    start_date = date_parser(start_date)
-    end_date = date_parser(end_date)
-    console.print(f"[bold]starting to download data to '{path}' from {start_date} to {end_date}")
+
+    :parameter overwrite:   (flag) overwrite the data if its already exits at the given path
+    :parameter start_date:  the first date to download data to
+    :parameter end_date:    the last date to download data to
+    :parameter path:        a path to download the data to, if the data already exists it won't be downloaded
+    """
+    console.print(f"[bold]starting to download data to '{path}'")
+    console.print(f"from {start_date.date()} to {end_date.date()}")
+    console.print(f"overwrite: {overwrite}")
 
 
 @app.command()
