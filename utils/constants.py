@@ -1,4 +1,4 @@
-from handlers.distance_to_water_handler import DistanceToWaterHandler
+from handlers.local_handlers.distance_to_water_handler import DistanceToWaterHandler
 
 DATE_FORMATS = formats = ["%Y",
                           "%m/%Y", "%m-%Y", "%m.%Y",
