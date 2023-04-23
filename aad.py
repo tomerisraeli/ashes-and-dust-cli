@@ -66,12 +66,14 @@ def list_data():
 
     table.add_column("", justify="left")
     table.add_column("source", style="grey37")
-    table.add_column("type", style="grey37")
+    table.add_column("description", style="grey37")
 
-    table.add_row("elevation", "NASA", "spatial")
-    table.add_row("distance from major water bodies", "internal", "spatial")
-    table.add_row("PBL", "ESA", "timed")
-    table.add_row("AOD", "internal", "timed")
+    for handler in constants.DOWNLOAD_HANDLERS + constants.LOCAL_HANDLERS:
+        table.add_row(
+            handler.NAME,
+            handler.SOURCE,
+            handler.DESCRIPTION
+        )
 
     console.print(table)
 

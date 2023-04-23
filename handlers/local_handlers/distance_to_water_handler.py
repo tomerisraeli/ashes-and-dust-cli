@@ -6,6 +6,7 @@ import os
 class DistanceToWaterHandler(TifHandler):
     NAME = "distance_to_water"
     SOURCE = "local"
+    DESCRIPTION = "the min distance to a major water body in Israel"
     TIF_PATH = os.path.join("distance_to_water", "distance_to_water.tif")
 
 

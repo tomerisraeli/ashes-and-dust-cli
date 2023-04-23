@@ -2,8 +2,9 @@ from datetime import datetime
 
 
 class Handler:
-    SOURCE: str = ...  # the source of the data handled by the Handler
-    NAME: str = ...  # a short name for data handled by the Handler
+    SOURCE: str = ...       # the source of the data handled by the Handler
+    NAME: str = ...         # a short name for data handled by the Handler
+    DESCRIPTION: str = ""   # a short description of the data
 
     CLIP_AND_REPROJECT_FILES = [
         # (clip file - shp, reproject file - tif, tile name)
