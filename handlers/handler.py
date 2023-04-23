@@ -7,9 +7,9 @@ class Handler:
 
     CLIP_AND_REPROJECT_FILES = [
         # (clip file - shp, reproject file - tif, tile name)
-        ("handlers/tiles/h21v06_crs2039.shp", "handlers/tiles/h21v06.tif", "h21v06"),
-        ("handlers/tiles/h21v05_crs2039.shp", "handlers/tiles/h21v05.tif", "h21v05"),
-        ("handlers/tiles/h20v05_crs2039.shp", "handlers/tiles/h20v05.tif", "h20v05")
+        ("tiles/h21v06_crs2039.shp", "tiles/h21v06.tif", "h21v06"),
+        ("tiles/h21v05_crs2039.shp", "tiles/h21v05.tif", "h21v05"),
+        ("tiles/h20v05_crs2039.shp", "tiles/h20v05.tif", "h20v05")
     ]
 
     def preprocess(self, path):
@@ -29,13 +29,13 @@ class LocalHandler(Handler):
     instead of downloading the data, it will confirm the existence of it at the given path
     """
 
-    def confirm_existence(self, path: str):
+    def confirm_existence(self, path: str) -> bool:
         """
         confirm that all the needed files for this handler exits, with the right names and paths
 
 
         :param path:    the path to the root dir holding all data of the project
-        :return:        None
+        :return:        True if confirmed, False otherwise
         """
         ...
 
