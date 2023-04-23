@@ -50,7 +50,7 @@ def preprocess(
     :parameter path: a directory with the data to preprocess
     """
 
-    console.print(f"[bold]starting to preprocess data at '{path}'")
+    ashes_and_dust.preprocess(path)
 
 
 @app.command()
