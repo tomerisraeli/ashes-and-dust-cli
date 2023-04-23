@@ -7,6 +7,7 @@ from datetime import datetime
 
 from utils import constants
 import ashes_and_dust
+
 app = typer.Typer()
 console = rich.console.Console()
 
@@ -41,7 +42,7 @@ def download(
 
 @app.command()
 def preprocess(
-        path: str
+        path: str = typer.Argument(..., help="path of root directory"),
 ):
     """
     preprocess the data needed
