@@ -15,37 +15,17 @@ class Handler:
         self.overwrite = overwrite
 
 
-class LocalHandler(Handler):
-    def __init__(self, path, start_date, end_date, overwrite):
-        super().__init__(path, start_date, end_date, overwrite)
+class tifHandler(Handler):
+    def run_tif(self, tif_name, file_name, path):
+        tile_list_shp = [f'{path}/{constants.REQUIRED_FILE[0]}',
+                         f'{path}/{constants.REQUIRED_FILE[1]}',
+                         f'{path}/{constants.REQUIRED_FILE[2]}']
 
-
-class DownloadHandler(Handler):
-    def __init__(self, path, start_date, end_date, overwrite):
-        super().__init__(path, start_date, end_date, overwrite)
-
-
-class DistanceFromWaterHandler(LocalHandler):
-    def __init__(self, path, start_date, end_date, overwrite):
-        super().__init__(path, start_date, end_date, overwrite)
-        self.name = "dist_from_water"
-        self.source = "source"
-
-    def confirm_existence(self):
-        print("confirm_existence")
-
-    def preprocess(self):
-        current_working_dir = os.getcwd()
-        tile_list_shp = [f'{self.path}/h20v05.shp',
-                         f'{self.path}/h21v05.shp',
-                         f'{self.path}/h21v06.shp']
-
-        geotif_of_tile = [f'{self.path}/h20v05.tif',
-                          f'{self.path}/h21v05.tif',
-                          f'{self.path}/h21v06.tif']
+        geotif_of_tile = [f'{path}/{constants.REQUIRED_FILE[3]}',
+                          f'{path}/{constants.REQUIRED_FILE[4]}',
+                          f'{path}/{constants.REQUIRED_FILE[5]}']
         # geotif_road_all_of_israel
-        geotif_land_use = [f"{self.path}/dist_massive_water.tif"
-            , f"{self.path}/dist_to_water.tif"]
+        geotif_land_use = [f"{file_name}"]
 
         for tile, tile_grid in zip(tile_list_shp, geotif_of_tile):
             geodf = geopandas.read_file(tile)
@@ -56,17 +36,44 @@ class DistanceFromWaterHandler(LocalHandler):
                 clipped = xds1.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
                 xds_repr_match = clipped.rio.reproject_match(to_match)
                 data_reprojected = xds_repr_match.rio.reproject("EPSG:2039")
-                data_reprojected.to_netcdf(f'{self.path}/dist_from_water/', f'{os.path.basename(tile)}-{os.path.basename(land)}.nc')
+                data_reprojected.to_netcdf(f'{os.path.basename(tile)}-{tif_name}.nc')
                 # # visualize data
                 # plt.imshow(data_reprojected.squeeze())
                 # plt.show()
                 # plt.clf()
 
 
+class LocalHandler(Handler):
+    ...
+
+
+class DownloadHandler(Handler):
+    ...
+
+
+class DistanceFromWaterHandler(LocalHandler, tifHandler):
+    def __init__(self, path, start_date, end_date, overwrite):
+        super().__init__(path, start_date, end_date, overwrite)
+        self.name = "dist_from_water"
+        self.source = "source"
+
+    def confirm_existence(self):
+        required_files = set(constants.REQUIRED_FILE)
+        existing_files = set(os.listdir(self.path))
+        return len(required_files & existing_files) == len(required_files)
+
+    def preprocess(self):
+        geotif_land_use = [f"{self.path}/dist_massive_water.tif"
+            , f"{self.path}/dist_to_water.tif"]
+        for tif in geotif_land_use:
+            self.run_tif(self.name, tif, self.path)
+
+
+
 def generate_classes(path, start_date, end_date, overwrite):
     for name in constants.HANDLERS:
         class_obj = globals().get(name)
         instance_obj = class_obj(path, start_date, end_date, overwrite)
-        instance_obj.confirm_existence()
+        instance_obj.preprocess()
 
 
