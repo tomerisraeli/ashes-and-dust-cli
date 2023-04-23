@@ -1,1 +1,1 @@
-from handlers.handler_classes import generate_classes
+from handlers.distance_to_water_handler import generate_classes
