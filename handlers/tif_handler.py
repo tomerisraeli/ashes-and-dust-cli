@@ -2,7 +2,6 @@ import os.path
 from typing import Tuple
 
 import geopandas
-from matplotlib import pyplot as plt
 from rioxarray import rioxarray
 
 from handlers.handler import LocalHandler
@@ -34,9 +33,9 @@ class TifHandler(LocalHandler):
             data_reprojected.to_netcdf(os.path.join(sub_dir_path, f"{self.NAME}_{tile_name}.nc"))
 
             # visualize data
-            plt.imshow(data_reprojected.squeeze())
-            plt.show()
-            plt.clf()
+            # plt.imshow(data_reprojected.squeeze())
+            # plt.show()
+            # plt.clf()
 
     def __get_paths(self, path: str) -> Tuple[str, str]:
         """

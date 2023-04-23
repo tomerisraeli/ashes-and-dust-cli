@@ -6,8 +6,7 @@ from rich.table import Table
 from datetime import datetime
 
 from utils import constants
-import handlers
-
+import ashes_and_dust
 app = typer.Typer()
 console = rich.console.Console()
 
@@ -37,7 +36,7 @@ def download(
     :parameter path:        a path to download the data to, if the data already exists it won't be downloaded
     """
 
-    handlers.generate_classes(path, start_date, end_date, overwrite)
+    ashes_and_dust.download(path, start_date, end_date, overwrite)
 
 
 @app.command()
