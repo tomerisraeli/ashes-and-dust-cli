@@ -1,33 +1,47 @@
+import os.path
+from typing import Tuple
+
 import geopandas
 from rioxarray import rioxarray
 
-from handlers.handler import Handler
-from utils import constants
+from handlers.handler import LocalHandler
 
 
-class TifHandler(Handler):
-    def run_tif(self, tif_name, file_name, path):
-        tile_list_shp = [f'{path}/{constants.REQUIRED_FILE[0]}',
-                         f'{path}/{constants.REQUIRED_FILE[1]}',
-                         f'{path}/{constants.REQUIRED_FILE[2]}']
+class TifHandler(LocalHandler):
+    TIF_PATH: str       # the relative path from the root dir to tif file
 
-        geotif_of_tile = [f'{path}/{constants.REQUIRED_FILE[3]}',
-                          f'{path}/{constants.REQUIRED_FILE[4]}',
-                          f'{path}/{constants.REQUIRED_FILE[5]}']
-        # geotif_road_all_of_israel
-        geotif_land_use = [f"{file_name}"]
+    def confirm_existence(self, path: str):
+        file_path, _ = self.__get_paths(path)
+        # TODO: implement
+        pass
 
-        for tile, tile_grid in zip(tile_list_shp, geotif_of_tile):
-            geodf = geopandas.read_file(tile)
+    def preprocess(self, path):
+        file_path, sub_dir_path = self.__get_paths(path)
+
+        for tile_clip, tile_grid, tile_name in TifHandler.CLIP_AND_REPROJECT_FILES:
+            geodf = geopandas.read_file(tile_clip)
             to_match = rioxarray.open_rasterio(tile_grid)
-            for land in geotif_land_use:
-                xds1 = rioxarray.open_rasterio(land)  # land use
-                # we clip the raster of the land use
-                clipped = xds1.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
-                xds_repr_match = clipped.rio.reproject_match(to_match)
-                data_reprojected = xds_repr_match.rio.reproject("EPSG:2039")
-                data_reprojected.to_netcdf(f'{os.path.basename(tile)}-{tif_name}.nc')
-                # # visualize data
-                # plt.imshow(data_reprojected.squeeze())
-                # plt.show()
-                # plt.clf()
+
+            xds1 = rioxarray.open_rasterio(file_path)  # land use
+            # we clip the raster to the tile
+            clipped = xds1.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
+            xds_repr_match = clipped.rio.reproject_match(to_match)
+            data_reprojected = xds_repr_match.rio.reproject("EPSG:2039")
+            data_reprojected.to_netcdf(os.path.join(sub_dir_path, f"{TifHandler.NAME}_{tile_name}.nc"))
+
+            # # visualize data
+            # plt.imshow(data_reprojected.squeeze())
+            # plt.show()
+            # plt.clf()
+
+    def __get_paths(self, path: str) -> Tuple[str, str]:
+        """
+        get the full path for the tif file and the directory of the data
+
+
+        :param path: the path of the root directory
+        :return: tuple of (tif path, data's dir path)
+        """
+        file_path = os.path.join(path, TifHandler.TIF_PATH)
+        sub_dir_path = os.path.dirname(file_path)
+        return file_path, sub_dir_path
