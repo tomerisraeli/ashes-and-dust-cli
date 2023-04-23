@@ -8,9 +8,9 @@ class Handler:
 
     CLIP_AND_REPROJECT_FILES = [
         # (clip file - shp, reproject file - tif, tile name)
-        ("tiles/h21v06_crs2039.shp", "tiles/h21v06.tif", "h21v06"),
-        ("tiles/h21v05_crs2039.shp", "tiles/h21v05.tif", "h21v05"),
-        ("tiles/h20v05_crs2039.shp", "tiles/h20v05.tif", "h20v05")
+        ("handlers/tiles/h21v06_crs2039.shp", "handlers/tiles/h21v06.tif", "h21v06"),
+        ("handlers/tiles/h21v05_crs2039.shp", "handlers/tiles/h21v05.tif", "h21v05"),
+        ("handlers/tiles/h20v05_crs2039.shp", "handlers/tiles/h20v05.tif", "h20v05")
     ]
 
     def preprocess(self, path):

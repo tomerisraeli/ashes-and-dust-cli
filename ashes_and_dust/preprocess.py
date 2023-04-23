@@ -1,3 +1,5 @@
+import os
+
 import rich
 
 from utils import constants
@@ -12,9 +14,8 @@ def preprocess(path: str):
 
     rich.print(f"[bold]preprocessing data at '{path}'")
 
-    for local_handler in constants.LOCAL_HANDLERS:
+    for local_handler in constants.LOCAL_HANDLERS + constants.DOWNLOAD_HANDLERS:
+        print(os.getcwd())
         rich.print(f"preprocessing {local_handler.NAME}")
+        local_handler.preprocess(path)
 
-    for download_handler in constants.DOWNLOAD_HANDLERS:
-        rich.print(f"preprocessing {download_handler.NAME}")
-        download_handler.preprocess(path)
