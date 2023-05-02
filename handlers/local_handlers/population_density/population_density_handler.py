@@ -7,6 +7,7 @@ from rioxarray import rioxarray
 from handlers.handler import LocalHandler
 from handlers.local_handlers.population_density import population_density_handler_support
 from handlers.tif_handler import TifHandler
+from utils import constants
 
 
 class PopulationDensityHandler(LocalHandler):
@@ -32,7 +33,6 @@ class PopulationDensityHandler(LocalHandler):
         return missing_files
 
     def preprocess(self, path):
-        os.mkdir(self.__get_temp_dir_path(path))
         polygon_file = os.path.join(self.__get_population_density_dir(path),
                                     PopulationDensityHandler.NECESSARY_FILES[0]
                                     )
@@ -41,12 +41,12 @@ class PopulationDensityHandler(LocalHandler):
             population_density_handler_support.polygons_to_raster(
                 raster_path=tile_grid,
                 polygon_path=polygon_file,
-                field="Pop_Total",
-                output_raster=os.path.join(self.__get_temp_dir_path(path), f"{self.NAME}_{tile_name}.tif")
+                field=constants.CONFIG.get_key(constants.CONFIG.Keys.population_density_value_key),
+                output_raster=os.path.join(self.__get_population_density_dir(path), f"{self.NAME}_{tile_name}.tif")
             )
         # converting to nc and clipping data
         for tile_clip, _, tile_name in PopulationDensityHandler.CLIP_AND_REPROJECT_FILES:
-            tif_path = os.path.join(self.__get_temp_dir_path(path), f"{self.NAME}_{tile_name}.tif")
+            tif_path = os.path.join(self.__get_population_density_dir(path), f"{self.NAME}_{tile_name}.tif")
             geodf = geopandas.read_file(tile_clip)
 
             output = rioxarray.open_rasterio(tif_path)
@@ -57,6 +57,3 @@ class PopulationDensityHandler(LocalHandler):
 
     def __get_population_density_dir(self, path: str):
         return os.path.join(path, "population_density")
-
-    def __get_temp_dir_path(self, path: str):
-        return os.path.join(self.__get_population_density_dir(path), "temp")
