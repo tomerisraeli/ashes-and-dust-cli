@@ -10,7 +10,7 @@ from handlers.tif_handler import TifHandler
 
 
 class PopulationDensityHandler(LocalHandler):
-    SOURCE: str = ""
+    SOURCE: str = "local"
     NAME: str = "Population Density 2011"
     DESCRIPTION: str = "the population density over israel in 2011, units=1000[peoples]"
 
