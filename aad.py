@@ -62,7 +62,6 @@ def list_data():
 
     :return:
     """
-    # TODO: get a real data from backend
     table = Table(box=rich.box.HORIZONTALS)
 
     table.add_column("", justify="left")

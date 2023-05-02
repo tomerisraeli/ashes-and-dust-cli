@@ -7,5 +7,5 @@ DATE_FORMATS = formats = ["%Y",
                           "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y"
                           ]
 
-LOCAL_HANDLERS =[PopulationDensityHandler()]# [DistanceToWaterHandler(), ElevationHandler()]
+LOCAL_HANDLERS = [PopulationDensityHandler(), DistanceToWaterHandler(), ElevationHandler()]
 DOWNLOAD_HANDLERS = []

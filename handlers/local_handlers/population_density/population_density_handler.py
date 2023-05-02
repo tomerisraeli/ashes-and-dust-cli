@@ -24,13 +24,12 @@ class PopulationDensityHandler(LocalHandler):
     ]
 
     def confirm_existence(self, path: str):
-        flag = True
+        missing_files = []
         for file in PopulationDensityHandler.NECESSARY_FILES:
             file_path = os.path.join(self.__get_population_density_dir(path), file)
             if not os.path.isfile(file_path):
-                # yield f"missing {file} on {self.__get_population_density_dir(path)}"
-                flag = False
-        return flag
+                missing_files.append(file_path)
+        return missing_files
 
     def preprocess(self, path):
         os.mkdir(self.__get_temp_dir_path(path))

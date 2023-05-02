@@ -16,7 +16,7 @@ class TifHandler(LocalHandler):
 
     def confirm_existence(self, path: str):
         file_path, _ = self.__get_paths(path)
-        return os.path.isfile(file_path)
+        return [] if os.path.isfile(file_path) else [file_path]
 
     def preprocess(self, path):
         file_path, sub_dir_path = self.__get_paths(path)
