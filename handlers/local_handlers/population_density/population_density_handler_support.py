@@ -1,9 +1,9 @@
 from functools import cache
 
-from osgeo import gdal
+from osgeo import gdal, osr
 from osgeo import ogr
 import numpy as np
-from tqdm import tqdm
+from rich.progress import track
 
 
 def __generate_ring(px, py, geotransform):
@@ -135,9 +135,11 @@ def polygons_to_raster(raster_path, polygon_path, field, output_raster):
     projection = raster_ds.GetProjection()
 
     features = [feature for feature in layer if __is_feature_relevant(feature, raster_ds, field)]
+    # print(f"filtered {len(layer) - len(features)} from {len(layer)}")
     output_data = np.zeros((raster_ds.RasterYSize, raster_ds.RasterXSize))
 
-    for y in tqdm(range(raster_ds.RasterYSize)):
+    for y in track(range(raster_ds.RasterYSize),
+                   description=f"converting polygons to .tif at {raster_path}"):
         for x in range(raster_ds.RasterXSize):
             # Get the coordinates of the current cell
             px, py = __calc_cell_dimensions(x, y, geotransform)
@@ -157,12 +159,11 @@ def polygons_to_raster(raster_path, polygon_path, field, output_raster):
     output_band.WriteArray(output_data)
     output_ds.FlushCache()
 
-    raster_ds, vector_ds = None, None
-    return output_ds
+    raster_ds, vector_ds, output_raster = None, None, None
 
 
 if __name__ == '__main__':
-    r = polygons_to_raster(
+    polygons_to_raster(
         raster_path="/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/test/h21v05.tif",
         polygon_path="/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/test/LAMS2011_2039.shp",
         field="Pop_Total",

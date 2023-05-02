@@ -25,7 +25,7 @@ class TifHandler(LocalHandler):
             geodf = geopandas.read_file(tile_clip)
             to_match = rioxarray.open_rasterio(tile_grid)
 
-            xds1 = rioxarray.open_rasterio(file_path)  # land use
+            xds1 = rioxarray.open_rasterio(file_path)
             # we clip the raster to the tile
             clipped = xds1.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
             xds_repr_match = clipped.rio.reproject_match(to_match)
