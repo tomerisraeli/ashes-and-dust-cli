@@ -10,4 +10,4 @@ DATE_FORMATS = formats = ["%Y",
 
 LOCAL_HANDLERS = [PopulationDensityHandler(), DistanceToWaterHandler(), ElevationHandler()]
 DOWNLOAD_HANDLERS = []
-CONFIG = ConfigurationValues("add_config.config")
+CONFIG = ConfigurationValues("aad_config.ini")
