@@ -1,11 +1,8 @@
 from functools import cache
-
 from osgeo import gdal, osr
 from osgeo import ogr
 import numpy as np
-from rich import progress
-from rich.progress import track, Progress
-from tqdm import tqdm
+from rich.progress import Progress
 
 
 @cache
@@ -72,12 +69,10 @@ def polygons_to_raster(raster_path, polygon_path, field, output_raster):
 
     layer = vector_ds.GetLayer()
 
-    # get some basic value of the reference raster
+    # get some basic values of the reference raster
     transform = raster_ds.GetGeoTransform()
     projection = raster_ds.GetProjection()
 
-    x_origin = transform[0]
-    y_origin = transform[3]
     pixel_width = transform[1]
     pixel_height = transform[5]
     rows = raster_ds.RasterYSize
