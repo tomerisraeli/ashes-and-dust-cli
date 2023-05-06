@@ -1,14 +1,18 @@
 import numpy
 import numpy as np
 import rasterio
+from osgeo import gdal
 from rasterio.plot import show
-from rasterio.windows import from_bounds
-from rich.progress import track
-import pyproj
+from tqdm import tqdm
+
+from utils import gdal_utils
 
 INPUT_LANDUSE = '/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/land_use2021e.img'
 OUTPUT = '/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/land_use_out.tif'
 REFERENCE_TIF = "/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/tiles/h20v05.tif"
+
+with rasterio.open(INPUT_LANDUSE, "r") as t:
+    show(t)
 
 # Dictionary of reclassification's. 19 & 30 doesn't exist in the original data
 RECLASSIFICATION_DICT = {
@@ -28,46 +32,68 @@ def reclassify_data(data):
 
 
 def find_most_common_value(arr):
-    # Get the unique values and their counts in the flattened array
     unique_values, value_counts = np.unique(arr, return_counts=True)
-
-    # Find the index of the maximum count
     max_count_idx = np.argmax(value_counts)
-
-    # Return the most common value
     return unique_values[max_count_idx]
 
 
 # open the original data
-with rasterio.open(INPUT_LANDUSE, 'r') as src, rasterio.open(REFERENCE_TIF, "r") as reference:
-    # show(src)
-    width = reference.width
-    height = reference.height
-    output = np.zeros((width, height))
+src = gdal.Open(INPUT_LANDUSE)
+reference = gdal.Open(REFERENCE_TIF)
 
-    transformer = pyproj.Transformer.from_crs(reference.crs, src.crs)
+# generate all the cells coordinates in the raster
+src_cells = gdal_utils.get_cells(src)
+src_data = src.GetRasterBand(1).ReadAsArray()
+src_data = reclassify_data(src_data)
 
-    for x in track(range(width)):
-        for y in range(height):
-            x_min = reference.bounds.left + x * reference.res[0]
-            y_min = reference.bounds.bottom + y * reference.res[1]
-            x_max = reference.bounds.left + (x + 1) * reference.res[0]
-            y_max = reference.bounds.bottom + (y + 1) * reference.res[1]
+reference_cells = gdal_utils.get_cells(reference)
 
-            x_min, y_min = transformer.transform(x_min, y_min)
-            x_max, y_max = transformer.transform(x_max, y_max)
-            window = from_bounds(x_min, y_min, x_max, y_max, src.transform)
-            cell_data = src.read(window=window)
+reference_trans = reference.GetGeoTransform()
+src_trans = src.GetGeoTransform()
 
-            cell_data = reclassify_data(cell_data).flatten()
-            print(f"number of cells: {len(cell_data)}")
-            # cell_data = cell_data[cell_data != 255]  # remove empty values
+reference_cell_height = reference_trans[5]
+reference_cell_width = reference_trans[1]
+reference_cell_max_dist = (reference_cell_width ** 2 + reference_cell_height ** 2) ** 0.5
 
-            if cell_data.size > 0:
-                output[x][y] = 1
-                # output[x][y] = find_most_common_value(cell_data)
+output_data = np.zeros((reference.RasterYSize, reference.RasterXSize))
+for row, col, x, y in tqdm(reference_cells):
+    # create cell geometry
+    cell_geo = gdal_utils.get_cell_geometry(col, row, reference_trans)
 
-    with rasterio.open(OUTPUT, 'w', **reference.profile) as out:
-        out.write(output, 1)
-with rasterio.open(OUTPUT, 'r') as ras:
-    show(ras)
+    # generate bbox
+    x_min = x - reference_cell_max_dist
+    x_max = x + reference_cell_width + reference_cell_max_dist
+    y_min = y - reference_cell_max_dist
+    y_max = y + reference_cell_height + reference_cell_max_dist
+
+    bbox_cols, bbox_rows = gdal_utils.get_cells_indexes(src, x_min, y_min, x_max, y_max)
+    # if bbox_rows.size > 0 and bbox_cols.size > 0:
+    #     print(bbox_cols[0], " -> ", bbox_cols[-1], ", ", bbox_rows[0], " -> ", bbox_rows[-1])
+    # else:
+    #     print("Nine")
+    # filtered_cells = [cell for cell in src_cells if x_min <= cell[2] <= x_max and y_min <= cell[3] <= y_max]
+    # print(f"checking {len(filtered_cells)} cells")
+    total_area_per_value = {value: 0 for value in set(RECLASSIFICATION_DICT.values())}
+    for src_row in bbox_rows:
+        for src_col in bbox_cols:
+            if src_data[src_row][src_col] == 255:
+                # invalid value or empty
+                continue
+            # src_cell_geo = gdal_utils.get_cell_geometry(src_col, src_row, src_trans)
+            # intersection = cell_geo.Intersection(src_cell_geo)
+            total_area_per_value[src_data[src_row][src_col]] += 1
+                # intersection.Area()
+    output_data[row][col] = max(total_area_per_value, key=lambda k: total_area_per_value[k])
+# Create the output raster file
+driver = gdal.GetDriverByName("GTiff")
+output_ds = driver.Create(OUTPUT, reference.RasterXSize, reference.RasterYSize, 1, gdal.GDT_Float32)
+output_ds.SetGeoTransform(reference_trans)
+output_ds.SetProjection(reference.GetProjection())
+output_band = output_ds.GetRasterBand(1)
+output_band.WriteArray(output_data)
+output_ds.FlushCache()
+
+src, reference = None, None
+
+with rasterio.open(OUTPUT, "r") as t:
+    show(t)
