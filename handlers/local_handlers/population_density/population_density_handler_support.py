@@ -1,51 +1,9 @@
-from functools import cache
-from osgeo import gdal, osr
-from osgeo import ogr
+from osgeo import gdal, ogr
 import numpy as np
 from rich.progress import Progress
 
-
-@cache
-def __get_cell_geometry(col, row, geotransform):
-    """
-    generate the ring of the given coordinate
-
-
-    :param row:
-    :param col:
-    :param geotransform: the geotransform of the reference raster
-    :return:
-    """
-
-    px, py = __calc_cell_dimensions(col, row, geotransform)
-
-    ring = ogr.Geometry(ogr.wkbLinearRing)
-    ring.AddPoint(px - geotransform[1] / 2, py - geotransform[5] / 2)
-    ring.AddPoint(px + geotransform[1] / 2, py - geotransform[5] / 2)
-    ring.AddPoint(px + geotransform[1] / 2, py + geotransform[5] / 2)
-    ring.AddPoint(px - geotransform[1] / 2, py + geotransform[5] / 2)
-    ring.AddPoint(px - geotransform[1] / 2, py - geotransform[5] / 2)
-
-    cell_geom = ogr.Geometry(ogr.wkbPolygon)
-    cell_geom.AddGeometry(ring)
-    return cell_geom
-
-
-def __calc_cell_dimensions(x, y, geotransform):
-    """
-    calculate the dimensions of the cell
-
-
-    :param x: the x coordinate of the cell
-    :param y: the y coordinate of the cell
-    :param geotransform:
-    :return: dx, dy
-    """
-
-    return (
-        geotransform[0] + (x + 0.5) * geotransform[1] + (y + 0.5) * geotransform[2],
-        geotransform[3] + (x + 0.5) * geotransform[4] + (y + 0.5) * geotransform[5]
-    )
+from utils import gdal_utils
+from utils.gdal_utils import get_cell_geometry
 
 
 def polygons_to_raster(raster_path, polygon_path, field, output_raster):
@@ -81,13 +39,7 @@ def polygons_to_raster(raster_path, polygon_path, field, output_raster):
     # generate all the cells coordinates in the raster
     output_data = np.zeros((rows, cols))
     dist = (pixel_width ** 2 + pixel_height ** 2) ** 0.5  # the max distance between two points in a cell
-
-    cells = []
-    for row in range(rows):
-        for col in range(cols):
-            x = transform[0] + col * transform[1] + row * transform[2]
-            y = transform[3] + col * transform[4] + row * transform[5]
-            cells.append((row, col, x, y))
+    cells = gdal_utils.get_cells(raster_ds)
 
     with Progress() as progress:
         features_iteration_progress = progress.add_task("[bold]converting polygons...", total=layer.GetFeatureCount())
@@ -117,7 +69,7 @@ def polygons_to_raster(raster_path, polygon_path, field, output_raster):
             for row, col, _, _ in filtered_cells:
                 progress.update(feature_intersections_progress, advance=1)
 
-                cell_geom = __get_cell_geometry(col, row, transform)
+                cell_geom = get_cell_geometry(col, row, transform)
 
                 intersection = geometry.Intersection(cell_geom)
                 weight = intersection.Area() / feature_area
