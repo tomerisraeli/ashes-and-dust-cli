@@ -10,7 +10,7 @@ from utils import gdal_utils
 INPUT_LANDUSE = '/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/land_use2021e.img'
 OUTPUT = '/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/local_handlers/land_use_out.tif'
 REFERENCE_TIF = "/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/tiles/h20v05.tif"
-
+DEFAULT_VALUE = 0
 with rasterio.open(INPUT_LANDUSE, "r") as t:
     show(t)
 
@@ -22,13 +22,11 @@ RECLASSIFICATION_DICT = {
     37: 3, 38: 4, 39: 4,
 }
 
-NUMBER_OF_VARS = len(set(RECLASSIFICATION_DICT.values()))
 
-
-def reclassify_data(data):
-    for key, value in RECLASSIFICATION_DICT.items():
-        data[numpy.where(data == key)] = value
-    return data
+def reclassify(value):
+    if value not in RECLASSIFICATION_DICT.keys():
+        return DEFAULT_VALUE
+    return RECLASSIFICATION_DICT[value]
 
 
 def find_most_common_value(arr):
@@ -41,59 +39,47 @@ def find_most_common_value(arr):
 src = gdal.Open(INPUT_LANDUSE)
 reference = gdal.Open(REFERENCE_TIF)
 
-# generate all the cells coordinates in the raster
-src_cells = gdal_utils.get_cells(src)
 src_data = src.GetRasterBand(1).ReadAsArray()
-src_data = reclassify_data(src_data)
-
-reference_cells = gdal_utils.get_cells(reference)
 
 reference_trans = reference.GetGeoTransform()
 src_trans = src.GetGeoTransform()
 
-reference_cell_height = reference_trans[5]
-reference_cell_width = reference_trans[1]
-reference_cell_max_dist = (reference_cell_width ** 2 + reference_cell_height ** 2) ** 0.5
+output_count = {value: np.zeros((reference.RasterYSize, reference.RasterXSize)) for value in
+                RECLASSIFICATION_DICT.values()}
 
-output_data = np.zeros((reference.RasterYSize, reference.RasterXSize))
-for row, col, x, y in tqdm(reference_cells):
-    # create cell geometry
-    cell_geo = gdal_utils.get_cell_geometry(col, row, reference_trans)
+for row in tqdm(range(src.RasterYSize)):
+    for col in range(src.RasterXSize):
+        if reclassify(src_data[row][col]) == DEFAULT_VALUE:
+            continue
 
-    # generate bbox
-    x_min = x - reference_cell_max_dist
-    x_max = x + reference_cell_width + reference_cell_max_dist
-    y_min = y - reference_cell_max_dist
-    y_max = y + reference_cell_height + reference_cell_max_dist
+        # calculate the x,y coordinates and find the matching index on the reference raster
+        x, y = gdal_utils.calc_x_y(col, row, src_trans)
+        reference_col, reference_row = gdal_utils.calc_cell_index(reference_trans, x, y)
+        reference_col, reference_row = int(np.round(reference_col)), int(np.round(reference_row))
 
-    bbox_cols, bbox_rows = gdal_utils.get_cells_indexes(src, x_min, y_min, x_max, y_max)
-    # if bbox_rows.size > 0 and bbox_cols.size > 0:
-    #     print(bbox_cols[0], " -> ", bbox_cols[-1], ", ", bbox_rows[0], " -> ", bbox_rows[-1])
-    # else:
-    #     print("Nine")
-    # filtered_cells = [cell for cell in src_cells if x_min <= cell[2] <= x_max and y_min <= cell[3] <= y_max]
-    # print(f"checking {len(filtered_cells)} cells")
-    total_area_per_value = {value: 0 for value in set(RECLASSIFICATION_DICT.values())}
-    for src_row in bbox_rows:
-        for src_col in bbox_cols:
-            if src_data[src_row][src_col] == 255:
-                # invalid value or empty
-                continue
-            # src_cell_geo = gdal_utils.get_cell_geometry(src_col, src_row, src_trans)
-            # intersection = cell_geo.Intersection(src_cell_geo)
-            total_area_per_value[src_data[src_row][src_col]] += 1
-                # intersection.Area()
-    output_data[row][col] = max(total_area_per_value, key=lambda k: total_area_per_value[k])
-# Create the output raster file
+        if 0 <= reference_row < reference.RasterYSize and 0 <= reference_col < reference.RasterXSize:
+            output_count[reclassify(src_data[row][col])][reference_row][reference_col] += 1
+
+output = np.zeros((reference.RasterYSize, reference.RasterXSize))
+for i in tqdm(range(len(output))):
+    for j in range(len(output[0])):
+        cell_count_by_value = {value: count[i][j] for value, count in output_count.items()}
+        if set(cell_count_by_value.values()) == {0}:
+            # didn't count anything
+            output[i][j] = DEFAULT_VALUE
+            continue
+
+        output[i][j] = max(cell_count_by_value, key=lambda key: cell_count_by_value[key])
+
 driver = gdal.GetDriverByName("GTiff")
 output_ds = driver.Create(OUTPUT, reference.RasterXSize, reference.RasterYSize, 1, gdal.GDT_Float32)
 output_ds.SetGeoTransform(reference_trans)
 output_ds.SetProjection(reference.GetProjection())
 output_band = output_ds.GetRasterBand(1)
-output_band.WriteArray(output_data)
+output_band.WriteArray(output)
 output_ds.FlushCache()
 
-src, reference = None, None
+src, reference, output_ds = None, None, None
 
 with rasterio.open(OUTPUT, "r") as t:
     show(t)
