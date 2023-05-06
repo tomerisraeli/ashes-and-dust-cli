@@ -1,5 +1,7 @@
+import rasterio
 import typer
 import rich
+from matplotlib import pyplot as plt
 from rich import box
 from rich.table import Table
 
@@ -76,6 +78,24 @@ def list_data():
         )
 
     console.print(table)
+
+
+@app.command()
+def plot(path: str):
+    """
+    show 2-D netCDF or tif file
+
+
+    :return:
+    """
+    with rasterio.open(path, 'r') as src:
+        # read the data variable
+        data_var = src.read(1)
+
+        # plot the data
+        plt.imshow(data_var, cmap='jet')
+        plt.colorbar()
+        plt.show()
 
 
 if __name__ == "__main__":
