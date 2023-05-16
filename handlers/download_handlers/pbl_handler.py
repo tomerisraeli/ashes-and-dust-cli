@@ -3,16 +3,17 @@ import os.path
 from datetime import datetime, timedelta
 
 import cdsapi
-from rich.progress import track
+import rich
+from tqdm import tqdm
 
 from handlers.handler import DownloadHandler
 from utils import constants
 
 
 class PBLHandler(DownloadHandler):
-    SOURCE = ""
-    NAME = ""
-    DESCRIPTION = ""
+    SOURCE = "https://cds.climate.copernicus.eu/api/v2"
+    NAME = "PBL DATA"
+    DESCRIPTION = "the PBL data from cds"
 
     __API_URL = "https://cds.climate.copernicus.eu/api/v2"
     __HOUR = "12:00"  # the hour to download data to
@@ -28,30 +29,27 @@ class PBLHandler(DownloadHandler):
         :return:
         """
         pwd = self.__generate_data_path(path)
-
         os.chdir(pwd)
 
         dates = self.__get_dates(start_date, end_date)
-        print(dates)
         dates = self.__filter_dates(dates, overwrite)
-        print(dates)
 
         if not dates:
-            print("nothing to download")
+            rich.print("        [green]nothing to download")
             return
 
-        print(f"downloading {len(dates)} files")
+        rich.print(f"       downloading {len(dates)} files")
         cdsapi_client = cdsapi.Client(
             key=constants.CONFIG.get_key(constants.CONFIG.Keys.pbl_api_key),
             url=PBLHandler.__API_URL
         )
         cdsapi_client.logger.setLevel(level=logging.CRITICAL)
-        for file, date in track(dates,
-                                description="downloading pbl data"):
+
+        for file, date in tqdm(dates):
             try:
                 self.__download_single_date(cdsapi_client, file, date)
             except Exception as e:
-                print(f"file downloading {file}")
+                rich.print(f"       [red]failed downloading {file}")
 
     def preprocess(self, path):
         pass
@@ -87,16 +85,15 @@ class PBLHandler(DownloadHandler):
         :param date: the date of the data
         :return:
         """
-
-        cdsapi_client.retrieve(
+        _ = cdsapi_client.retrieve(
             'reanalysis-era5-single-levels',
             {
                 'product_type': 'reanalysis',
                 'variable': 'boundary_layer_height',
-                'year': [f"{date.year}"],
-                'month': [f"{date.month}"],
-                'day': [f"{date.day}"],
-                'time': [PBLHandler.__HOUR],
+                'year': f"{date.year}",
+                'month': f"{date.month}",
+                'day': f"{date.day}",
+                'time': PBLHandler.__HOUR,
                 'area': PBLHandler.__AREA,
                 'format': 'netcdf',
             },
@@ -108,12 +105,3 @@ class PBLHandler(DownloadHandler):
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
         return dir_path
-
-
-if __name__ == '__main__':
-    PBLHandler().download(
-        path="/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli/handlers/download_handlers",
-        start_date=datetime(day=12, month=5, year=2020),
-        end_date=datetime(day=16, month=5, year=2020),
-        overwrite=True
-    )

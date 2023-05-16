@@ -1,3 +1,4 @@
+from handlers.download_handlers.pbl_handler import PBLHandler
 from handlers.local_handlers.distance_to_water_handler import DistanceToWaterHandler
 from handlers.local_handlers.elevation_handler import ElevationHandler
 from handlers.local_handlers.land_use_handler import LandUseHandler
@@ -10,5 +11,5 @@ DATE_FORMATS = formats = ["%Y",
                           ]
 
 LOCAL_HANDLERS = [PopulationDensityHandler(), DistanceToWaterHandler(), ElevationHandler(), LandUseHandler()]
-DOWNLOAD_HANDLERS = []
+DOWNLOAD_HANDLERS = [PBLHandler()]
 CONFIG = ConfigurationValues("aad_config.ini")

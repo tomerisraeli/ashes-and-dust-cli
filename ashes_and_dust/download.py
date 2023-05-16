@@ -30,5 +30,5 @@ def download(path: str, start_date: datetime, end_date: datetime, overwrite: boo
 
     rich.print("[bold]downloading data")
     for download_handler in constants.DOWNLOAD_HANDLERS:
-        rich.print(f"downloading {download_handler.NAME} from {download_handler.SOURCE}")
+        rich.print(f"   downloading {download_handler.NAME} from {download_handler.SOURCE}")
         download_handler.download(path, start_date, end_date, overwrite)
