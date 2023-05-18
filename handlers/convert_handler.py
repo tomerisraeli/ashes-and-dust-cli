@@ -1,7 +1,10 @@
 import os
 
 import geopandas
+import rasterio
 from osgeo import gdal
+from rasterio.plot import show
+from rich.progress import Progress
 from rioxarray import rioxarray
 
 from handlers.handler import LocalHandler
@@ -17,36 +20,54 @@ class ConvertHandler(LocalHandler):
     def confirm_existence(self, path: str):
         missing_files = []
         for file in self.__NECESSARY_FILES:
-            file_path = os.path.join(self.__get_data_dir(path), file)
+            file_path = os.path.join(self._get_data_dir(path), file)
             if not os.path.isfile(file_path):
                 missing_files.append(file_path)
         return missing_files
 
     def preprocess(self, path):
-        for tile_clip, tile_grid, tile_name in self.CLIP_AND_REPROJECT_FILES:
-            nc_path, tif_path = self.__get_files_paths_of_tile(path, tile_name)
+        with Progress() as progress:
+            for tile_clip, tile_grid, tile_name in self.CLIP_AND_REPROJECT_FILES:
+                task = progress.add_task(f"preprocessing {tile_name}", total=1)
 
-            self.__single_tile_preprocess(tile_clip, tile_grid, tile_name, tif_path)
+                nc_path, tif_path = self._get_files_paths_of_tile(path, tile_name)
 
-            clip_file = geopandas.read_file(tile_clip)
-            raster = rioxarray.open_rasterio(tif_path)
-            raster = raster.rio.clip(clip_file.geometry.values, clip_file.crs, drop=False, invert=False)
-            raster = raster.rio.reproject("EPSG:2039")
-            raster.to_netcdf(nc_path)
+                self._single_tile_preprocess(path,
+                                             tile_clip,
+                                             tile_grid,
+                                             tile_name,
+                                             tif_path,
+                                             task,
+                                             progress
+                                             )
 
-    def __single_tile_preprocess(self, tile_clip, tile_grid, tile_name, output_tif):
+                clip_file = geopandas.read_file(tile_clip)
+                raster = rioxarray.open_rasterio(tif_path)
+                raster = raster.rio.clip(clip_file.geometry.values, clip_file.crs, drop=False, invert=False)
+                raster = raster.rio.reproject("EPSG:2039")
+                raster.to_netcdf(nc_path)
+
+                raster = rasterio.open(nc_path)
+                show(raster)
+
+    def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif,
+                                task_progress, progress_bar):
         """
         make all preprocess calculations on just one tile.
-        the generated tif will be clipped than saved as .nc file, you may want to use the `__create_tif` function
-        :param tile_clip:   path of the tile .shp clip file
-        :param tile_grid:   path of the tile grid .tif file
-        :param tile_name:   the name of the tile
-        :param output_tif:  the path to save the result tif at
+        the generated tif will be clipped than saved as .nc file, you may want to use the `_create_tif` function
+        :param path:            path to root dir of data
+        :param reference:       gdal object of the reference raster
+        :param tile_clip:       path of the tile .shp clip file
+        :param tile_grid:       path of the tile grid .tif file
+        :param tile_name:       the name of the tile
+        :param output_tif:      the path to save the result tif at
+        :param task_progress:   rich progress bar task ID
+        :param progress_bar:    rich progress bar
         :return:
         """
         ...
 
-    def __create_tif(self, reference, output_path, tif_data):
+    def _create_tif(self, reference, output_path, tif_data):
         """
         create a tiff file with the transform and projection of the reference raster but with tif_data
         :param reference:   the gdal object of the reference tif
@@ -63,7 +84,7 @@ class ConvertHandler(LocalHandler):
         output_band.WriteArray(tif_data)
         output_ds.FlushCache()
 
-    def __get_data_dir(self, path: str):
+    def _get_data_dir(self, path: str):
         """
         get the path of the sub dir holding the all the data of the handler
         :param path:    path of root dir
@@ -71,7 +92,7 @@ class ConvertHandler(LocalHandler):
         """
         return os.path.join(path, self.NAME.replace(" ", "_"))
 
-    def __get_files_paths_of_tile(self, path, tile_name):
+    def _get_files_paths_of_tile(self, path, tile_name):
         """
         get the output tif and nc files paths for the given tile name
         :param path:        path of root dir
@@ -79,5 +100,5 @@ class ConvertHandler(LocalHandler):
         :return:            nc_path, tif_path
         """
 
-        general_path = os.path.join(self.__get_data_dir(path), f"{self.NAME}_{tile_name}.nc".replace(" ", "_").lower())
+        general_path = os.path.join(self._get_data_dir(path), f"{self.NAME}_{tile_name}".replace(" ", "_").lower())
         return f"{general_path}.nc", f"{general_path}.tif"
