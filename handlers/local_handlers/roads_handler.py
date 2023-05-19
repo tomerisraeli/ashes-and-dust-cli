@@ -34,11 +34,14 @@ class RoadsHandler(ConvertHandler):
         cols = reference.RasterXSize
 
         output_data = np.zeros((rows, cols))
-        __progress_bar_delta = 1/(rows*cols)
+        __progress_bar_delta = 1 / (rows * cols)
+
+        points, shp_spatial_ref = self.__load_all_road_points(shp_path)
+
         for row in range(rows):
             for col in range(cols):
                 cell_center = gdal_utils.calc_x_y(col + 0.5, row + 0.5, transform)
-                distances = np.linalg.norm(self.__load_all_road_points(shp_path) - cell_center)
+                distances = np.linalg.norm(points - cell_center)
                 output_data[row][col] = np.min(distances)
                 progress_bar.update(task_progress, advance=__progress_bar_delta)
         self._create_tif(reference, output_tif, output_data)
@@ -51,14 +54,14 @@ class RoadsHandler(ConvertHandler):
         :return:            a list of all road points in .shp file
         """
         roads_shp = ogr.Open(roads_path)
+
         if not roads_shp:
             raise FileExistsError(f"couldn't open {roads_path}")
         roads_layer = roads_shp.GetLayer()
+        spatial_ref = roads_layer.GetExtent()
 
         points = []
         for road in roads_layer:
             points += road.GetGeometryRef().GetPoints()
-
         roads_shp = None
-        return np.array(points, dtype=float)
-
+        return np.array(points, dtype=float), spatial_ref
