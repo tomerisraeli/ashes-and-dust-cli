@@ -84,7 +84,7 @@ class ConvertHandler(LocalHandler):
         :param path:    path of root dir
         :return:        path of data dir as str
         """
-        return os.path.join(path, self.NAME.replace(" ", "_"))
+        return os.path.join(path, self.NAME.replace(" ", "_").lower())
 
     def _get_files_paths_of_tile(self, path, tile_name):
         """

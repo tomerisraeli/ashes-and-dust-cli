@@ -11,11 +11,11 @@ DATE_FORMATS = formats = ["%Y",
                           ]
 
 LOCAL_HANDLERS = [
-    PopulationDensityHandler(),
-    DistanceToWaterHandler(),
-    ElevationHandler(),
+    # PopulationDensityHandler(),
+    # DistanceToWaterHandler(),
+    # ElevationHandler(),
     LandUseHandler(),
-    RoadsHandler()
+    # RoadsHandler()
 ]
 DOWNLOAD_HANDLERS = []
 CONFIG = ConfigurationValues("aad_config.ini")

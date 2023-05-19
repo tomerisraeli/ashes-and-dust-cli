@@ -1,3 +1,4 @@
+import functools
 from functools import cache
 
 import numpy as np
@@ -20,6 +21,15 @@ def calc_x_y(col, row, transform):
     return x, y
 
 
+@functools.cache
+def __calc_inverse_transform(transform):
+    mat = [[transform[1], transform[2]],
+           [transform[4], transform[5]]
+           ]
+
+    return np.linalg.inv(mat)
+
+
 def calc_cell_index(transform, x, y):
     """
     calc the row and col of the given cell in the given transform
@@ -38,11 +48,7 @@ def calc_cell_index(transform, x, y):
     # (taken from https://gdal.org/tutorials/geotransforms_tut.html)
     # we can move the free var to the left side and write this as matrix which we can find the opposite of
 
-    mat = [[transform[1], transform[2]],
-           [transform[4], transform[5]]
-           ]
-
-    inverse_mat = np.linalg.inv(mat)
+    inverse_mat = __calc_inverse_transform(transform)
     vec = [x - transform[0], y - transform[3]]
     col, row = inverse_mat.dot(vec)
     return col, row
@@ -100,7 +106,7 @@ def get_cells_indexes(raster, x_min, y_min, x_max, y_max):
     get the indices of the cells in the given range
 
 
-    :param transform:
+    :param raster:
     :param x_min:
     :param y_min:
     :param x_max:
