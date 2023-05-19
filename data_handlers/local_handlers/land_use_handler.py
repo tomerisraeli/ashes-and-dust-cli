@@ -8,8 +8,8 @@ from rich.progress import track
 from rioxarray import rioxarray
 from tqdm import tqdm
 
-from handlers.convert_handler import ConvertHandler
-from handlers.handler import LocalHandler
+from data_handlers.convert_handler import ConvertHandler
+from data_handlers.handler import LocalHandler
 from utils import gdal_utils
 
 

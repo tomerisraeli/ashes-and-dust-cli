@@ -59,7 +59,7 @@ def preprocess(
 @app.command()
 def list_data():
     """
-    print a list of all data handlers
+    print a list of all data data_handlers
 
 
     :return:

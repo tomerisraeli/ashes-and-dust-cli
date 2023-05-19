@@ -4,7 +4,7 @@ from typing import Tuple
 import geopandas
 from rioxarray import rioxarray
 
-from handlers.handler import LocalHandler
+from data_handlers.handler import LocalHandler
 
 
 class TifHandler(LocalHandler):
