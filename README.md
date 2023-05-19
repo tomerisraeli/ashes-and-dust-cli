@@ -3,14 +3,23 @@
 ## general
 ### dependencies
 before using or working on this project you have to install some libraries
-1. [rich](https://pypi.org/project/rich/) - pip install rich
-2. [typer](https://pypi.org/project/typer/) - pip install typer
-3. [geopandas]()
-4. rioxarray
-5. scipy
+list of all requirements is available on [requirements.txt](requirements.txt). you can run 
+```bash
+pip install -r requirements.txt
+``` 
+to install them all
 
-## project structures
-
+### project CLI
+after installing all the requirements, you can run 
+```bash
+python aad.py --help
+```
+to see all CLI commands. to see further information on each cmd you can use
+```bash
+python aad.py download --help
+```
+for example
+## project structure
 ### app configuration
 some parts of the app require some configuration files, use the ```ConfigurationValues``` [implemented on utils/configuration_values.py](utils/configuration_values.py) to add more values, you may access the config file from the [constants file](utils/constants.py)
 ### data download and preprocess
