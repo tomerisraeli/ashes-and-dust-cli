@@ -6,7 +6,6 @@ from rioxarray import rioxarray
 
 from data_handlers.handler import LocalHandler
 from data_handlers.local_handlers.population_density import population_density_handler_support
-from data_handlers.tif_handler import TifHandler
 from utils import constants
 
 

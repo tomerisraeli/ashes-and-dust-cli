@@ -1,4 +1,3 @@
-from utils import constants
 from data_handlers.tif_handler import TifHandler
 import os
 

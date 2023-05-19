@@ -33,8 +33,6 @@ def __calc_inverse_transform(transform):
 def calc_cell_index(transform, x, y):
     """
     calc the row and col of the given cell in the given transform
-
-
     :param transform:
     :param x:
     :param y:
@@ -58,8 +56,6 @@ def calc_cell_index(transform, x, y):
 def get_cell_geometry(col, row, geotransform):
     """
     get the geometry of the given cell
-
-
     :param row:
     :param col:
     :param geotransform: the geotransform of the reference raster
@@ -82,10 +78,9 @@ def get_cell_geometry(col, row, geotransform):
 def get_cells(raster):
     """
     get all the cells in the raster
-
-
     :param raster: the raster (gdal dataset)
-    :return: an array holding all the cell as tuples of (row, col, x, y) where x,y are the bottom left corner of the cell
+    :return: an array holding all the cell as tuples of (row, col, x, y) where x,y are the bottom left
+    corner of the cell
     """
 
     transform = raster.GetGeoTransform()
@@ -104,8 +99,6 @@ def get_cells(raster):
 def get_cells_indexes(raster, x_min, y_min, x_max, y_max):
     """
     get the indices of the cells in the given range
-
-
     :param raster:
     :param x_min:
     :param y_min:

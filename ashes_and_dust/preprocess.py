@@ -1,5 +1,3 @@
-import os
-
 import rich
 
 from utils import constants
