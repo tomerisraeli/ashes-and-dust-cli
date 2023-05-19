@@ -1,9 +1,7 @@
 import os
 
 import geopandas
-import rasterio
 from osgeo import gdal
-from rasterio.plot import show
 from rich.progress import Progress
 from rioxarray import rioxarray
 
@@ -47,16 +45,12 @@ class ConvertHandler(LocalHandler):
                 raster = raster.rio.reproject("EPSG:2039")
                 raster.to_netcdf(nc_path)
 
-                raster = rasterio.open(nc_path)
-                show(raster)
-
     def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif,
                                 task_progress, progress_bar):
         """
         make all preprocess calculations on just one tile.
         the generated tif will be clipped than saved as .nc file, you may want to use the `_create_tif` function
         :param path:            path to root dir of data
-        :param reference:       gdal object of the reference raster
         :param tile_clip:       path of the tile .shp clip file
         :param tile_grid:       path of the tile grid .tif file
         :param tile_name:       the name of the tile
