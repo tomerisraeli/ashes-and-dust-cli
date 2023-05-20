@@ -1,10 +1,7 @@
 import os.path
 from typing import Tuple
 
-import geopandas
-from rioxarray import rioxarray
-
-from handlers.handler import LocalHandler
+from data_handlers.handler import LocalHandler
 from utils import preprocess_utils
 
 

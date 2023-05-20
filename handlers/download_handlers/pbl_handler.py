@@ -6,11 +6,11 @@ import shutil
 
 from rich.progress import track
 
+from data_handlers.handler import DownloadHandler
 from utils import preprocess_utils
 import rich
 from tqdm import tqdm
 import xarray as xr
-from handlers.handler import DownloadHandler
 from utils import constants
 
 

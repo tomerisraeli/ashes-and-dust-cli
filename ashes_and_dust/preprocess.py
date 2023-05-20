@@ -10,9 +10,9 @@ def preprocess(path: str):
     :return:
     """
 
-    rich.print(f"[bold]preprocessing data at '{path}'")
+    rich.print(f"preprocessing data at '{path}'")
 
     for handler in constants.LOCAL_HANDLERS + constants.DOWNLOAD_HANDLERS:
-        rich.print(f"preprocessing {handler.NAME}")
+        rich.print(f"[bold]preprocessing {handler.NAME}")
         handler.preprocess(path)
 

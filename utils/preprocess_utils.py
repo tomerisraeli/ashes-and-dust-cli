@@ -2,7 +2,7 @@ import os.path
 import geopandas
 from rioxarray import rioxarray
 
-from handlers.handler import Handler
+from data_handlers.handler import Handler
 
 
 def clip_and_reproject_one_file(src_path, dir_path, result_file_name, src_crs: str = None):
