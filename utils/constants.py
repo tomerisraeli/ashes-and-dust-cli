@@ -11,5 +11,6 @@ DATE_FORMATS = formats = ["%Y",
                           ]
 
 LOCAL_HANDLERS = [PopulationDensityHandler(), DistanceToWaterHandler(), ElevationHandler(), LandUseHandler()]
+# LOCAL_HANDLERS = []
 DOWNLOAD_HANDLERS = [PBLHandler()]
 CONFIG = ConfigurationValues("aad_config.ini")

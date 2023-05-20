@@ -1,14 +1,15 @@
-import logging
 import os.path
 from datetime import datetime, timedelta
 
 import cdsapi
 import shutil
+
+from rich.progress import track
+
 from utils import preprocess_utils
 import rich
 from tqdm import tqdm
 import xarray as xr
-import rioxarray
 from handlers.handler import DownloadHandler
 from utils import constants
 
@@ -21,6 +22,7 @@ class PBLHandler(DownloadHandler):
     __API_URL = "https://cds.climate.copernicus.eu/api/v2"
     __HOUR = "12:00"  # the hour to download data to
     __AREA = [34, 33, 29, 36]  # the bbox of the download [North, West, South, East]
+    __RAW_DATA_CRS = "WGS84"
 
     def download(self, path: str, start_date: datetime, end_date: datetime, overwrite: bool):
         """
@@ -55,55 +57,54 @@ class PBLHandler(DownloadHandler):
 
     def preprocess(self, path):
 
-        # create folder for processed data
-        os.mkdir(os.path.join(path, 'processed'))
-        files = os.listdir(path)
-        files.remove("processed")  # remove the folder itself from the files list
+        # the preprocessing of data is made in 2 steps:
+        # 1. clip and reproject all the data files
+        #    after this step, we will have all the processed files in one folder - processed_data_dir_path
+        # 2. merging all files to one .nc file
 
-        # run over the files and process them
-        for file in files:
-            preprocess_utils.clip_and_reproject_one_file(
-                src_path=file,
-                dir_path="processed",
-                result_file_name="processed"
+        pbl_dir = self.__get_pbl_dir(path)  # path to dir of pbl
+        processed_data_dir_path = os.path.join(pbl_dir, 'processed')  # path to dir of processed files
+        raw_data_path = self.__generate_data_path(path)  # path to dir of pbl raw data
+
+        if not os.path.isdir(processed_data_dir_path):
+            os.mkdir(processed_data_dir_path)
+
+        # list of pbl raw data files
+        data_files = [file for file in os.listdir(raw_data_path) if file.endswith(".nc")]
+
+        # step 1 - run over the files and process them, after clipping and re-projecting to tiles, add the generated
+        # files to the matching value on the preprocessed_files_by_tile_name
+        preprocessed_files_by_tile_name = {tile_name: [] for _, _, tile_name in self.CLIP_AND_REPROJECT_FILES}
+
+        for file in track(data_files, description="preprocessing pbl raw data file"):
+            generated_files = preprocess_utils.clip_and_reproject_one_file(
+                src_path=os.path.join(raw_data_path, file),
+                dir_path=processed_data_dir_path,
+                result_file_name=file.split(".")[0],
+                src_crs=PBLHandler.__RAW_DATA_CRS
             )
 
-        # separate data to tiles
-        tile_patterns = ['h20v05', 'h21v05', 'h21v06']
-        tile_extensions = ['h20v05_merged.nc', 'h21v05_merged.nc', 'h21v06_merged.nc']
-        blocks = []
+            for tile_name, file_path in generated_files:
+                preprocessed_files_by_tile_name[tile_name].append(file_path)
 
-        for pattern, extension in zip(tile_patterns, tile_extensions):
-            files = [
-                os.path.join(os.path.join(path, 'processed'), file)
-                for file in os.listdir(os.path.join(path, 'processed'))
-                if file.startswith(pattern) and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))
-            ]
-            blocks.append((files, extension))
+        # step 2 - merge files to one netcdf
+        rich.print("merging data to .nc file, this may take some time")
+        for tile_name, tile_files in preprocessed_files_by_tile_name.items():
+            modified_datasets = []
+            for file in tile_files:
+                data = xr.open_dataset(file)
+                data['time'] = [self.__get_file_date(file)]
+                modified_datasets.append(data)
 
-        os.mkdir(os.path.join(path, 'merged_files'))
-
-        for block in blocks:
-            block_list = block[0]
-            merged_dataset = rioxarray.open_rasterio(block_list[0])
-
-            for file_name in block_list[1:]:
-                # Read each input file
-                dataset = rioxarray.open_rasterio(file_name)
-                # concatenate through time dimension
-                # FIXME: what are the values of the times axes? should be dates of data
-                merged_dataset = xr.concat([merged_dataset, dataset],
-                                           dim='time')
-                # Save the merged GeoDataFrame to a new .nc file
-            merged_dataset.to_netcdf(os.path.join(path, 'merged_files', block[1]))
+            merged_data = xr.concat(modified_datasets, dim='time')
+            merged_data.to_netcdf(os.path.join(pbl_dir, f"pbl_{tile_name}.nc"))
+        rich.print("merged data, deleting temp files")
         # delete unnecessary folder
-        shutil.rmtree(os.path.join(path, 'processed'))
+        shutil.rmtree(processed_data_dir_path)
 
     def __get_dates(self, sdate: datetime, edate: datetime):
         """
         get a list of dates to download and the files names
-
-
         :param sdate: the first date to download data to
         :param edate: the last date to download data to (not included)
         :return: an iterator of file_names and the dates as datetime object
@@ -147,7 +148,24 @@ class PBLHandler(DownloadHandler):
         )
 
     def __generate_data_path(self, path):
-        dir_path = os.path.join(path, "pbl", "data")
+        dir_path = os.path.join(self.__get_pbl_dir(path), "data")
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
         return dir_path
+
+    def __get_pbl_dir(self, path):
+        return os.path.join(path, "pbl")
+
+    def __get_file_date(self, file_path) -> datetime:
+        file_name = os.path.basename(file_path)
+        # file name should be something like this - 1_1_2010_12_00_pbl_h20v05.nc
+        # hence the last 14 characters are not date data
+        date_str = file_name[:-14]
+
+        return datetime.strptime(date_str, '%d_%m_%Y_%H_%M')
+
+
+if __name__ == '__main__':
+    os.chdir("/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli")
+    PBLHandler().preprocess(
+        "/Users/tomerisraeli/Library/CloudStorage/GoogleDrive-tomer.israeli.43@gmail.com/My Drive/year_2/Magdad/data_preprocess")

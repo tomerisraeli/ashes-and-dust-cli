@@ -34,5 +34,6 @@ class TifHandler(LocalHandler):
         :param path: the path of the root directory
         :return: tuple of (tif path, data's dir path)
         """
-        sub_dir_path = os.path.dirname(path)
-        return path, sub_dir_path
+        tif_path = os.path.join(path, self.TIF_PATH)
+        sub_dir_path = os.path.dirname(tif_path)
+        return tif_path, sub_dir_path
