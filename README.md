@@ -2,8 +2,8 @@
 
 ## general
 ### dependencies
-before using or working on this project you have to install some libraries
-list of all requirements is available on [requirements.txt](requirements.txt). you can run 
+before using or working on this project you have to install some libraries.
+list of all requirements is available on [requirements.txt](requirements.txt). use
 ```bash
 pip install -r requirements.txt
 ``` 
@@ -40,4 +40,4 @@ before adding a new data type to the project, there a several things to consider
 1. the data_handler api its handler should implement - is it local or is it remote? 
 2. is it similar to other data types or should I write the code myself?
 3. after the handler is implemented add it to list of handlers on the [constants file](utils/constants.py)
-make sure the look at the [utils](utils) that already exists, you save yourself some time using functions that are already implemented
+make sure the look at the [utils](utils) that already exists, you may save yourself some time using functions that are already implemented
