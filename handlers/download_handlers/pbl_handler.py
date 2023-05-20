@@ -59,25 +59,31 @@ class PBLHandler(DownloadHandler):
         # create folder for processed data
         os.mkdir(os.path.join(path, 'processed'))
         files = os.listdir(path)
-        files.remove("processed") # remove the folder itself from the files list
+        files.remove("processed")  # remove the folder itself from the files list
 
         # run over the files and process them
         for file in files:
+            # TODO: make it stand alone function, maybe add it to utils and use on TifHandler as well as over here
             processor.preprocess(os.path.join(path, file))
 
         # separate data to tiles
+        # TODO: use a for loop, you can find list of all tiles on
+        #  PBLHandler.CLIP_AND_REPROJECT_FILES (see Handler for source)
         h20v05_files = (
-        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
-         file.startswith('h20v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
-        'h20v05_merged.nc')
+            [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed'))
+             if
+             file.startswith('h20v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+            'h20v05_merged.nc')
         h21v05_files = (
-        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
-         file.startswith('h21v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
-        'h21v05_merged.nc')
+            [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed'))
+             if
+             file.startswith('h21v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+            'h21v05_merged.nc')
         h21v06_files = (
-        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
-         file.startswith('h21v06') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
-        'h21v06_merged.nc')
+            [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed'))
+             if
+             file.startswith('h21v06') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+            'h21v06_merged.nc')
         os.mkdir(os.path.join(path, 'merged_files'))
 
         for block in [h20v05_files, h21v05_files, h21v06_files]:
@@ -88,6 +94,7 @@ class PBLHandler(DownloadHandler):
                 # Read each input file
                 dataset = rioxarray.open_rasterio(file_name)
                 # concatenate through time dimension
+                # FIXME: what are the values of the times axes? should be dates of data
                 merged_dataset = xr.concat([merged_dataset, dataset],
                                            dim='time')
                 # Save the merged GeoDataFrame to a new .nc file
