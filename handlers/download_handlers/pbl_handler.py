@@ -3,10 +3,14 @@ import os.path
 from datetime import datetime, timedelta
 
 import cdsapi
+import shutil
+
 import rich
 from tqdm import tqdm
-
+import xarray as xr
+import rioxarray
 from handlers.handler import DownloadHandler
+from handlers.tif_handler import TifHandler
 from utils import constants
 
 
@@ -43,7 +47,6 @@ class PBLHandler(DownloadHandler):
             key=constants.CONFIG.get_key(constants.CONFIG.Keys.pbl_api_key),
             url=PBLHandler.__API_URL
         )
-        cdsapi_client.logger.setLevel(level=logging.CRITICAL)
 
         for file, date in tqdm(dates):
             try:
@@ -52,7 +55,45 @@ class PBLHandler(DownloadHandler):
                 rich.print(f"       [red]failed downloading {file}")
 
     def preprocess(self, path):
-        pass
+        processor = TifHandler()
+        # create folder for processed data
+        os.mkdir(os.path.join(path, 'processed'))
+        files = os.listdir(path)
+        files.remove("processed") # remove the folder itself from the files list
+
+        # run over the files and process them
+        for file in files:
+            processor.preprocess(os.path.join(path, file))
+
+        # separate data to tiles
+        h20v05_files = (
+        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
+         file.startswith('h20v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+        'h20v05_merged.nc')
+        h21v05_files = (
+        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
+         file.startswith('h21v05') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+        'h21v05_merged.nc')
+        h21v06_files = (
+        [os.path.join(os.path.join(path, 'processed'), file) for file in os.listdir(os.path.join(path, 'processed')) if
+         file.startswith('h21v06') and os.path.isfile(os.path.join(os.path.join(path, 'processed'), file))],
+        'h21v06_merged.nc')
+        os.mkdir(os.path.join(path, 'merged_files'))
+
+        for block in [h20v05_files, h21v05_files, h21v06_files]:
+            block_list = block[0]
+            merged_dataset = rioxarray.open_rasterio(block_list[0])
+
+            for file_name in block_list[1:]:
+                # Read each input file
+                dataset = rioxarray.open_rasterio(file_name)
+                # concatenate through time dimension
+                merged_dataset = xr.concat([merged_dataset, dataset],
+                                           dim='time')
+                # Save the merged GeoDataFrame to a new .nc file
+            merged_dataset.to_netcdf(os.path.join(path, 'merged_files', block[1]))
+        # delete unnecessary folder
+        shutil.rmtree(os.path.join(path, 'processed'))
 
     def __get_dates(self, sdate: datetime, edate: datetime):
         """
@@ -65,7 +106,8 @@ class PBLHandler(DownloadHandler):
         """
 
         dates = [sdate + timedelta(days=x) for x in range((edate - sdate).days)]
-        file_names = [f"{date.day}_{date.month}_{date.year}_{PBLHandler.__HOUR.replace(':', '_')}_pbl.nc" for date in dates]
+        file_names = [f"{date.day}_{date.month}_{date.year}_{PBLHandler.__HOUR.replace(':', '_')}_pbl.nc" for date in
+                      dates]
         return list(zip(file_names, dates))
 
     def __filter_dates(self, dates, overwrite):
@@ -101,7 +143,7 @@ class PBLHandler(DownloadHandler):
         )
 
     def __generate_data_path(self, path):
-        dir_path =  os.path.join(path, "pbl", "data")
+        dir_path = os.path.join(path, "pbl", "data")
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
         return dir_path
