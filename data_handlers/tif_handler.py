@@ -40,8 +40,6 @@ class TifHandler(LocalHandler):
     def __get_paths(self, path: str) -> Tuple[str, str]:
         """
         get the full path for the tif file and the directory of the data
-
-
         :param path: the path of the root directory
         :return: tuple of (tif path, data's dir path)
         """

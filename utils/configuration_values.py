@@ -8,10 +8,10 @@ class ConfigurationValues:
     the main point of this class is to wrap the configparser and make it easier to use
 
     to add a new __config value all you should do is
-    1. add a new ket at the class Keys
+    1. add a new key at the class Keys
     2. add the key to the values list
     * to really add it to the file, you should add this manually or delete the .ini file and let the program do
-        it for you to read
+        it for you
 
     to get a value, you just need to create a new ConfigurationValues instance and use the get_key func like so
 
