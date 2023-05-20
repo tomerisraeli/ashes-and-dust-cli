@@ -33,9 +33,13 @@ class ConfigurationValues:
         population_density_value_key = {"section": "Population Density",
                                         "key": "total population key on source shp file",
                                         "default": "Pop_Total"}
+        pbl_api_key = {"section": "PBL",
+                       "key": "pbl api key",
+                       "default": "196384:fce99bdf-7a3d-4532-8386-191f924b7fa0"}
 
         values = [
-            population_density_value_key
+            population_density_value_key,
+            pbl_api_key
         ]
 
         @staticmethod
