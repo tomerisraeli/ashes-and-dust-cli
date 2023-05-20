@@ -4,13 +4,12 @@ from datetime import datetime, timedelta
 
 import cdsapi
 import shutil
-from utils import preprocessor
+from utils import preprocess_utils
 import rich
 from tqdm import tqdm
 import xarray as xr
 import rioxarray
 from handlers.handler import DownloadHandler
-from handlers.tif_handler import TifHandler
 from utils import constants
 
 
@@ -55,6 +54,7 @@ class PBLHandler(DownloadHandler):
                 rich.print(f"       [red]failed downloading {file}")
 
     def preprocess(self, path):
+
         # create folder for processed data
         os.mkdir(os.path.join(path, 'processed'))
         files = os.listdir(path)
@@ -62,7 +62,11 @@ class PBLHandler(DownloadHandler):
 
         # run over the files and process them
         for file in files:
-            preprocessor.preprocess(os.path.join(path, file))
+            preprocess_utils.clip_and_reproject_one_file(
+                src_path=file,
+                dir_path="processed",
+                result_file_name="processed"
+            )
 
         # separate data to tiles
         tile_patterns = ['h20v05', 'h21v05', 'h21v06']
