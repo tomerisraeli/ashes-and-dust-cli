@@ -13,6 +13,8 @@ class ConvertHandler(LocalHandler):
     a general implementation of a handler that create the tiff from other sources
     """
 
+    # NOTE: the only function that require an implementation is _single_tile_preprocess
+
     __NECESSARY_FILES = []  # relative paths from the data dir
 
     def confirm_existence(self, path: str):

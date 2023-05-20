@@ -6,7 +6,8 @@ import rich
 
 def download(path: str, start_date: datetime, end_date: datetime, overwrite: bool):
     """
-    download all the data to the given path
+    download all the data to the given path, if the data is local, it won't be downloaded but its existence will
+    be checked
     :param path:
     :param start_date:
     :param end_date:

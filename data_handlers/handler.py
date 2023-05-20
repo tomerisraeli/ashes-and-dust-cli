@@ -2,6 +2,10 @@ from datetime import datetime
 
 
 class Handler:
+    """
+    the general handler api of the program. provides the basic structure of a data-handler on the app.
+    """
+
     SOURCE: str = ...       # the source of the data handled by the Handler
     NAME: str = ...         # a short name for data handled by the Handler
     DESCRIPTION: str = ""   # a short description of the data
@@ -15,9 +19,7 @@ class Handler:
 
     def preprocess(self, path):
         """
-        preprocess the raw data: clip, reproject and save as a new netcdf file at path near the raw data
-
-
+        preprocess the raw data: clip, reproject and save as a new netcdf file for each tile
         :param path:    the path to the root dir holding all data of the project
         :return:        None
         """
@@ -33,8 +35,6 @@ class LocalHandler(Handler):
     def confirm_existence(self, path: str) -> [str]:
         """
         confirm that all the needed files for this handler exits, with the right names and paths
-
-
         :param path:    the path to the root dir holding all data of the project
         :return:        an array of missing files
         """
@@ -49,8 +49,6 @@ class DownloadHandler(Handler):
     def download(self, path: str, start_date: datetime, end_date: datetime, overwrite: bool):
         """
         download the data to the given path
-
-
         :param path:        the path to the root dir holding all data of the project
         :param start_date:  the first date to download
         :param end_date:    the last date to download data to
