@@ -15,4 +15,5 @@ def preprocess(path: str):
     for handler in constants.LOCAL_HANDLERS + constants.DOWNLOAD_HANDLERS:
         rich.print(f"[bold]preprocessing {handler.NAME}")
         handler.preprocess(path)
+    rich.print(f"[bold]finished preprocessing, see results at {path}")
 
