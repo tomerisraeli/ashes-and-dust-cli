@@ -19,6 +19,13 @@ to see all CLI commands. to see further information on each cmd you can use
 python aad.py download --help
 ```
 for example
+#### CLI input
+when running different CLI functions you might be asked to enter a path to the root directory of the data. 
+what is this directory?
+
+root directory - the path to the directory holding all project data, when running the download function of CLI, 
+the existence of local data will be checked, and the missing files will be presented to the user, make sure all files 
+exists before running other functions. 
 ## project structure
 ### app configuration
 some parts of the app require some configuration files, use the ```ConfigurationValues``` [implemented on utils/configuration_values.py](utils/configuration_values.py) to add more values, you may access the config file from the [constants file](utils/constants.py)
@@ -35,7 +42,7 @@ as many data types are similar to each other (especially Local Data), there are 
 - ```TifHandler``` - [implemented on data_handlers/tif_handler.py](data_handlers/tif_handler.py) for preprocessing a tif file available locally
 - ```Convert Handler``` - [implemented on data_handlers/convert_handler.py](data_handlers/convert_handler.py) - for data types that require some calculations and conversions
 
-#### adding new data type
+#### adding a new data type
 before adding a new data type to the project, there a several things to consider
 1. the data_handler api its handler should implement - is it local or is it remote? 
 2. is it similar to other data types or should I write the code myself?
