@@ -1,9 +1,9 @@
 # ashes-and-dust-cli
 
 ## general
-### dependencies
-before using or working on this project you have to install some libraries.
-list of all requirements is available on [requirements.txt](requirements.txt). use
+### dependencies and versions
+the project was developed using python 3.9.6 and requires the libraries specified at 
+[requirements.txt](requirements.txt)
 ```bash
 pip install -r requirements.txt
 ``` 
