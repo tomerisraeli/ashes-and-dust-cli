@@ -1,3 +1,4 @@
+import logging
 import os.path
 from datetime import datetime, timedelta
 
@@ -48,6 +49,7 @@ class PBLHandler(DownloadHandler):
             key=constants.CONFIG.get_key(constants.CONFIG.Keys.pbl_api_key),
             url=PBLHandler.__API_URL
         )
+        cdsapi_client.logger.setLevel(logging.CRITICAL)
 
         for file, date in tqdm(dates):
             try:
