@@ -9,3 +9,4 @@ tqdm==4.65.0
 cftime==1.6.2
 cdsapi~=0.6.1
 xarray~=2023.3.0
+scipy~=1.10.1

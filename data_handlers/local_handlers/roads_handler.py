@@ -1,9 +1,8 @@
 import functools
 import os
-
 import numpy as np
+import scipy
 from osgeo import ogr, gdal
-
 from data_handlers.convert_handler import ConvertHandler
 from utils import gdal_utils
 
@@ -41,9 +40,10 @@ class RoadsHandler(ConvertHandler):
         for row in range(rows):
             for col in range(cols):
                 cell_center = gdal_utils.calc_x_y(col + 0.5, row + 0.5, transform)
-                distances = np.linalg.norm(points - cell_center)
+                distances = scipy.spatial.distance.cdist([cell_center], points)[0]
                 output_data[row][col] = np.min(distances)
                 progress_bar.update(task_progress, advance=__progress_bar_delta)
+
         self._create_tif(reference, output_tif, output_data)
 
     @functools.cache
@@ -65,3 +65,11 @@ class RoadsHandler(ConvertHandler):
             points += road.GetGeometryRef().GetPoints()
         roads_shp = None
         return np.array(points, dtype=float), spatial_ref
+
+
+if __name__ == '__main__':
+    os.chdir("/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli")
+
+    RoadsHandler().preprocess(
+        "/Users/tomerisraeli/Library/CloudStorage/GoogleDrive-tomer.israeli.43@gmail.com/My "
+        "Drive/year_2/Magdad/data_preprocess")
