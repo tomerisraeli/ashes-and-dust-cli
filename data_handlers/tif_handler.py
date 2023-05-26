@@ -34,3 +34,6 @@ class TifHandler(LocalHandler):
         tif_path = os.path.join(path, self.TIF_PATH)
         sub_dir_path = os.path.dirname(tif_path)
         return tif_path, sub_dir_path
+
+    def get_required_files_list(self, root_dir):
+        return [self.TIF_PATH]
