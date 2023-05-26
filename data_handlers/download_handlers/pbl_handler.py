@@ -104,6 +104,9 @@ class PBLHandler(DownloadHandler):
         # delete unnecessary folder
         shutil.rmtree(processed_data_dir_path)
 
+    def get_required_files_list(self, root_dir):
+        return []
+
     def __get_dates(self, sdate: datetime, edate: datetime):
         """
         get a list of dates to download and the files names
