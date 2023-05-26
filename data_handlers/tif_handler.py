@@ -8,6 +8,9 @@ from utils import preprocess_utils
 class TifHandler(LocalHandler):
     """
     a general tif handler implementation
+
+    clip and reproject to input file (TIF_PATH) to each tile in the handler, also holds basic implementation to all
+    Handler functions
     """
 
     TIF_PATH: str  # the path from the root dir to tif file

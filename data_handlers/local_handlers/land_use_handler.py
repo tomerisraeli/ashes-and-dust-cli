@@ -11,6 +11,8 @@ from utils import gdal_utils
 class LandUseHandler(ConvertHandler):
     """
     land use handler holds two functions to manage the validation and preprocessing of the land use data
+
+    land_use2021e.img is a raster holding the LAMAS classification of Israel land
     """
 
     SOURCE: str = "local"
@@ -34,34 +36,10 @@ class LandUseHandler(ConvertHandler):
     def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif,
                                 task_progress, progress_bar):
 
-        src_raster = gdal.Open(os.path.join(self._get_data_dir(path), self.__NECESSARY_FILES[0]))
+        src_raster = gdal.Open(os.path.join(self._get_data_dir(path), self._NECESSARY_FILES[0]))
+
         reference = gdal.Open(tile_grid)
-
-        src_data = src_raster.GetRasterBand(1).ReadAsArray()
-        reference_trans = reference.GetGeoTransform()
-        src_trans = src_raster.GetGeoTransform()
-
-        output_count = {value: np.zeros((reference.RasterYSize, reference.RasterXSize)) for value in
-                        LandUseHandler.RECLASSIFICATION_DICT.values()}
-
-        rows = src_raster.RasterYSize
-        cols = src_raster.RasterXSize
-        __progress_bar_delta = 1 / (rows * cols)
-
-        for row in range(rows):
-            for col in range(cols):
-                if self.__reclassify(src_data[row][col]) == LandUseHandler.DEFAULT_VALUE:
-                    progress_bar.update(task_progress, advance=__progress_bar_delta)
-                    continue
-
-                # calculate the x,y coordinates and find the matching index on the reference raster
-                x, y = gdal_utils.calc_x_y(col, row, src_trans)
-                reference_col, reference_row = gdal_utils.calc_cell_index(reference_trans, x, y)
-                reference_col, reference_row = int(np.round(reference_col)), int(np.round(reference_row))
-
-                if 0 <= reference_row < reference.RasterYSize and 0 <= reference_col < reference.RasterXSize:
-                    output_count[self.__reclassify(src_data[row][col])][reference_row][reference_col] += 1
-                progress_bar.update(task_progress, advance=__progress_bar_delta)
+        output_count = self.__count_after_classification(src_raster, reference, task_progress, progress_bar)
 
         rich.print("creating tif")
         output = np.zeros((reference.RasterYSize, reference.RasterXSize))
@@ -78,7 +56,41 @@ class LandUseHandler(ConvertHandler):
 
         reference, output_ds = None, None
 
+    def __count_after_classification(self, src_raster, reference, task_progress, progress_bar):
+        rows = src_raster.RasterYSize
+        cols = src_raster.RasterXSize
+        __progress_bar_delta = 1 / (rows * cols)
+
+        src_data = src_raster.GetRasterBand(1).ReadAsArray()
+        src_trans = src_raster.GetGeoTransform()
+
+        reference_trans = reference.GetGeoTransform()
+
+        output_count = {value: np.zeros((rows, cols)) for value in LandUseHandler.RECLASSIFICATION_DICT.values()}
+
+        for row in range(rows):
+            for col in range(cols):
+                progress_bar.update(task_progress, advance=__progress_bar_delta)
+
+                if self.__reclassify(src_data[row][col]) == LandUseHandler.DEFAULT_VALUE:
+                    continue
+
+                # calculate the x,y coordinates and find the matching index on the reference raster
+                x, y = gdal_utils.calc_x_y(col, row, src_trans)
+                reference_col, reference_row = gdal_utils.calc_cell_index(reference_trans, x, y)
+                reference_col, reference_row = int(np.round(reference_col)), int(np.round(reference_row))
+
+                if 0 <= reference_row < reference.RasterYSize and 0 <= reference_col < reference.RasterXSize:
+                    output_count[self.__reclassify(src_data[row][col])][reference_row][reference_col] += 1
+        return output_count
+
     def __reclassify(self, value):
+        """
+        get the reclassification of the data
+        :param value:   the value to reclassify
+        :return:        the reclassification value, if the given value doesn't exist on the RECLASSIFICATION_DICT the
+                        default value is returned
+        """
         if value not in LandUseHandler.RECLASSIFICATION_DICT:
             return LandUseHandler.DEFAULT_VALUE
         return LandUseHandler.RECLASSIFICATION_DICT[value]
@@ -86,4 +98,5 @@ class LandUseHandler(ConvertHandler):
 
 if __name__ == '__main__':
     os.chdir("/Users/tomerisraeli/Documents/GitHub/ashes-and-dust-cli")
-    LandUseHandler().preprocess('/Users/tomerisraeli/Library/CloudStorage/GoogleDrive-tomer.israeli.43@gmail.com/My Drive/year_2/Magdad/data_preprocess')
+    LandUseHandler().preprocess(
+        '/Users/tomerisraeli/Library/CloudStorage/GoogleDrive-tomer.israeli.43@gmail.com/My Drive/year_2/Magdad/data_preprocess')

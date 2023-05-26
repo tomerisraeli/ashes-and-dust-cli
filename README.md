@@ -27,6 +27,19 @@ root directory - the path to the directory holding all project data, when runnin
 the existence of local data will be checked, and the missing files will be presented to the user, make sure all files 
 exists before running other functions. 
 
+#### Download and Preprocess data using the CLI
+first, make sure your directory is at the right format and shape, you can view those using
+```python 
+aad.py list--dir
+```
+Then, download the data using 
+```python
+aad.py download <path to data dir> <first_date> <last_date>
+```
+and finally, preprocess the data,
+```python
+aad.py preprocess <path to data dir>
+```
 ## project structure
 the main file of the project is [aad.py](aad.py) (aad - ashes and dust), running this file will start the CLI. 
 other than the main file, the basic implementations of ashes and dust functions are on the 

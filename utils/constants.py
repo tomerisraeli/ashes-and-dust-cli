@@ -7,10 +7,15 @@ from data_handlers.local_handlers.roads_handler import RoadsHandler
 
 from utils.configuration_values import ConfigurationValues
 
+# CLI constants
+
 DATE_FORMATS = formats = ["%Y",
                           "%m/%Y", "%m-%Y", "%m.%Y",
                           "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y"
                           ]
+
+
+# lists of program handlers
 
 LOCAL_HANDLERS = [
     PopulationDensityHandler(),
@@ -22,4 +27,7 @@ LOCAL_HANDLERS = [
 DOWNLOAD_HANDLERS = [
     PBLHandler()
 ]
+
+# config values
+
 CONFIG = ConfigurationValues("aad_config.ini")
