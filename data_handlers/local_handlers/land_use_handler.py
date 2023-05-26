@@ -17,7 +17,7 @@ class LandUseHandler(ConvertHandler):
     NAME: str = "Land Use"
     DESCRIPTION: str = "classification of land use over Israel"
 
-    __NECESSARY_FILES = [
+    _NECESSARY_FILES = [
         "land_use2021e.img"
     ]
 

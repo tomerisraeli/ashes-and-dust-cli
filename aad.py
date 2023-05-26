@@ -102,5 +102,16 @@ def plot(path: str):
         plt.show()
 
 
+@app.command()
+def list_dir():
+    """
+    print the structure of the root dir
+
+
+    :return: None
+    """
+    ashes_and_dust.list_dir()
+
+
 if __name__ == "__main__":
     app()

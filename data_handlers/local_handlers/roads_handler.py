@@ -12,7 +12,7 @@ class RoadsHandler(ConvertHandler):
     NAME: str = "distance form highways"
     DESCRIPTION: str = "distance between the center of the cell to the closest major road in israel"
 
-    __NECESSARY_FILES = [
+    _NECESSARY_FILES = [
         "raw_data/highways_l.shp",
         "raw_data/highways_l.cpg",
         "raw_data/highways_l.dbf",

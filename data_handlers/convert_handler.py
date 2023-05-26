@@ -15,11 +15,11 @@ class ConvertHandler(LocalHandler):
 
     # NOTE: the only function that require an implementation is _single_tile_preprocess
 
-    __NECESSARY_FILES = []  # relative paths from the data dir
+    _NECESSARY_FILES = []  # relative paths from the data dir
 
     def confirm_existence(self, path: str):
         missing_files = []
-        for file in self.__NECESSARY_FILES:
+        for file in self._NECESSARY_FILES:
             file_path = os.path.join(self._get_data_dir(path), file)
             if not os.path.isfile(file_path):
                 missing_files.append(file_path)
@@ -49,7 +49,7 @@ class ConvertHandler(LocalHandler):
 
     def get_required_files_list(self, root_dir):
         data_dir = self._get_data_dir(root_dir)
-        return [os.path.join(data_dir, file) for file in self.__NECESSARY_FILES]
+        return [os.path.join(data_dir, file) for file in self._NECESSARY_FILES]
 
     def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif,
                                 task_progress, progress_bar):

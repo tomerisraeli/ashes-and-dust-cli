@@ -12,7 +12,7 @@ class PopulationDensityHandler(ConvertHandler):
     NAME: str = "Population Density"
     DESCRIPTION: str = "the population density over israel in 2011, units=1000[peoples]"
 
-    __NECESSARY_FILES = [
+    _NECESSARY_FILES = [
         "LAMS2011_2039.shp",
         "LAMS2011_2039.cpg",
         "LAMS2011_2039.dbf",
