@@ -24,7 +24,7 @@ class RoadsHandler(ConvertHandler):
     ]
 
     def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif, task_progress, progress_bar):
-        shp_path = os.path.join(self._get_data_dir(path), self.__NECESSARY_FILES[0])
+        shp_path = os.path.join(self._get_data_dir(path), self._NECESSARY_FILES[0])
 
         reference = gdal.Open(tile_grid)
         transform = reference.GetGeoTransform()

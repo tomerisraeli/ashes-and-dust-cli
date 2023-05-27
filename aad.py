@@ -110,6 +110,7 @@ def list_dir():
 
     :return: None
     """
+    rich.print("[bold]structure of root directory")
     ashes_and_dust.list_dir()
 
 

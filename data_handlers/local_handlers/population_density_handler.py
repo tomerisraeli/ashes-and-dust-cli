@@ -24,7 +24,7 @@ class PopulationDensityHandler(ConvertHandler):
     def _single_tile_preprocess(self, path, tile_clip, tile_grid, tile_name, output_tif,
                                 task_progress, progress_bar):
 
-        polygon_path = os.path.join(self._get_data_dir(path), self.__NECESSARY_FILES[0])
+        polygon_path = os.path.join(self._get_data_dir(path), self._NECESSARY_FILES[0])
         field = constants.CONFIG.get_key(constants.CONFIG.Keys.population_density_value_key)
 
         # convert the given polygons to a raster matching the geographic characteristic of the reference raster

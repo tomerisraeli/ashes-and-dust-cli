@@ -1,3 +1,4 @@
+import ashes_and_dust
 from utils import constants
 
 from datetime import datetime
@@ -20,16 +21,17 @@ def download(path: str, start_date: datetime, end_date: datetime, overwrite: boo
 
     rich.print("[bold]validating local data")
 
-    number_of_missing_files = 0
+    missing_files = set()
     for local_handler in constants.LOCAL_HANDLERS:
         rich.print(f"  validating {local_handler.NAME}")
         for file in local_handler.confirm_existence(path):
-            number_of_missing_files += 1
             rich.print(f"[red]  {local_handler.NAME} is missing {file}")
-    if number_of_missing_files:
-        rich.print(f"[red bold]missing {number_of_missing_files} files")
+            missing_files.add(file)
+    if len(missing_files) > 0:
+        rich.print(f"[red bold]missing {len(missing_files)} files\nmissing file are marked in red on the next tree")
+        ashes_and_dust.list_dir(path, missing_files)
 
-    rich.print("[bold]downloading data")
+    rich.print("[bold]downloading data from remote locations")
     for download_handler in constants.DOWNLOAD_HANDLERS:
         rich.print(f"   downloading {download_handler.NAME} from {download_handler.SOURCE}")
         download_handler.download(path, start_date, end_date, overwrite)
