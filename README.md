@@ -63,8 +63,8 @@ the data was divided to 2 groups:
 for each of those groups, there is a designated handler class - ```LocalHandler``` for Local Data and ```DownloadHandler``` for Remote Data. 
 
 as many data types are similar to each other (especially Local Data), there are some subclasses of ```LocalHandler```
-- ```TifHandler``` - [implemented on data_handlers/tif_handler.py](data_handlers/tif_handler.py) for preprocessing a tif file available locally
-- ```Convert Handler``` - [implemented on data_handlers/convert_handler.py](data_handlers/convert_handler.py) - for data types that require some calculations and conversions
+- ```TifHandler``` - [implemented on data_handlers/tif_handler.py](data_handlers/local_handlers/tif_handler.py) for preprocessing a tif file available locally
+- ```Convert Handler``` - [implemented on data_handlers/convert_handler.py](data_handlers/local_handlers/convert_handler.py) - for data types that require some calculations and conversions
 
 #### adding a new data type
 before adding a new data type to the project, there a several things to consider

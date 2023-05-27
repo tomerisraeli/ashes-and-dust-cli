@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 from osgeo import ogr, gdal
-from data_handlers.convert_handler import ConvertHandler
+from data_handlers.local_handlers.convert_handler import ConvertHandler
 from utils import constants, gdal_utils
 from utils.gdal_utils import get_cell_geometry
 

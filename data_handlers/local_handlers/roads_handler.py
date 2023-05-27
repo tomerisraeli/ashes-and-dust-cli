@@ -3,7 +3,7 @@ import os
 import numpy as np
 import scipy
 from osgeo import ogr, gdal
-from data_handlers.convert_handler import ConvertHandler
+from data_handlers.local_handlers.convert_handler import ConvertHandler
 from utils import gdal_utils
 
 

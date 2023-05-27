@@ -1,4 +1,4 @@
-from data_handlers.tif_handler import TifHandler
+from data_handlers.local_handlers.tif_handler import TifHandler
 import os
 
 
