@@ -5,7 +5,7 @@ from osgeo import gdal
 from rich.progress import Progress
 from rioxarray import rioxarray
 
-from data_handlers.handler import LocalHandler
+from data_handlers.handlers_api.local_handler import LocalHandler
 
 
 class ConvertHandler(LocalHandler):

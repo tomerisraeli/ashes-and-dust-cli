@@ -9,8 +9,8 @@ from datetime import datetime
 from utils import constants
 import ashes_and_dust
 
-# aad.py is the main file of the CLI. it defines the different commands
-# NOTE: the implementations of the different commands should appear at this file but on designated file on the
+# aad.py is the main file of the CLI. it defines the different commands of the CLI
+# NOTE: the implementations of the different commands shouldn't appear at this file but on designated file on the
 # 'ashes_and_dust' dir
 # NOTE: make sure to add help and descriptions to the functions and parameters, those will appear on the cli help
 

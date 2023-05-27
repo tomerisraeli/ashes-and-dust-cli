@@ -1,7 +1,7 @@
 import os.path
 from typing import Tuple
 
-from data_handlers.handler import LocalHandler
+from data_handlers.handlers_api.local_handler import LocalHandler
 from utils import preprocess_utils
 
 

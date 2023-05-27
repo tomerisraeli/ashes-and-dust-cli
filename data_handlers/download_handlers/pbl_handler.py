@@ -7,7 +7,7 @@ import shutil
 
 from rich.progress import track
 
-from data_handlers.handler import DownloadHandler
+from data_handlers.handlers_api.download_handler import DownloadHandler
 from utils import preprocess_utils
 import rich
 from tqdm import tqdm
