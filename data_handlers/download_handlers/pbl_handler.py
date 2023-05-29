@@ -26,14 +26,6 @@ class PBLHandler(DownloadHandler):
     __RAW_DATA_CRS = "WGS84"
 
     def download(self, path: str, start_date: datetime, end_date: datetime, overwrite: bool):
-        """
-
-        :param path:
-        :param start_date:
-        :param end_date:
-        :param overwrite:
-        :return:
-        """
         pwd = self.__generate_data_path(path)
         os.chdir(pwd)
 
@@ -105,9 +97,11 @@ class PBLHandler(DownloadHandler):
         shutil.rmtree(processed_data_dir_path)
 
     def get_required_files_list(self, root_dir):
+        # there are no required files to the pbl handler
         return []
 
-    def __get_dates(self, sdate: datetime, edate: datetime):
+    @staticmethod
+    def __get_dates(sdate: datetime, edate: datetime):
         """
         get a list of dates to download and the files names
         :param sdate: the first date to download data to
@@ -120,23 +114,27 @@ class PBLHandler(DownloadHandler):
                       dates]
         return list(zip(file_names, dates))
 
-    def __filter_dates(self, dates, overwrite):
+    @staticmethod
+    def __filter_dates(dates, overwrite):
         """
         remove all files that already exits in the directory
-        :param dates:
-        :return:
+        :param dates:   list of dates
+        :return:        list of filtered dates
         """
+
         if overwrite:
             return dates
         return [(file_path, date) for file_path, date in dates if not os.path.isfile(file_path)]
 
-    def __download_single_date(self, cdsapi_client, file_name, date):
+    @staticmethod
+    def __download_single_date(cdsapi_client, file_name, date):
         """
         download a single day from the api
         :param file_name: the file to download to
         :param date: the date of the data
         :return:
         """
+
         _ = cdsapi_client.retrieve(
             'reanalysis-era5-single-levels',
             {
@@ -153,15 +151,35 @@ class PBLHandler(DownloadHandler):
         )
 
     def __generate_data_path(self, path):
+        """
+        generate the path of dir to download data to and make sure it exists
+        :param path:    the path of root dir
+        :return:        the path to data dir
+        """
+
         dir_path = os.path.join(self.__get_pbl_dir(path), "data")
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
         return dir_path
 
-    def __get_pbl_dir(self, path):
+    @staticmethod
+    def __get_pbl_dir(path):
+        """
+        get the path to the pbl dir
+        :param path:    the path to root dir
+        :return:        path of pbl dir
+        """
+
         return os.path.join(path, "pbl")
 
-    def __get_file_date(self, file_path) -> datetime:
+    @staticmethod
+    def __get_file_date(file_path) -> datetime:
+        """
+        parse the file date from its path
+        :param file_path:   the path of the file
+        :return:            datetime object of file date
+        """
+
         file_name = os.path.basename(file_path)
         # file name should be something like this - 1_1_2010_12_00_pbl_h20v05.nc
         # hence the last 14 characters are not date data

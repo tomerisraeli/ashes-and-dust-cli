@@ -41,7 +41,9 @@ class LandUseHandler(ConvertHandler):
         reference = gdal.Open(tile_grid)
         output_count = self.__count_after_classification(src_raster, reference, task_progress, progress_bar)
 
-        rich.print("creating tif")
+        # after counting the data, the code now generate the new raster
+        # the value for each cell is set to be the value that appears the most at the cell
+
         output = np.zeros((reference.RasterYSize, reference.RasterXSize))
         for i in range(len(output)):
             for j in range(len(output[0])):
@@ -50,13 +52,22 @@ class LandUseHandler(ConvertHandler):
                     # didn't count anything
                     output[i][j] = LandUseHandler.DEFAULT_VALUE
                     continue
-                output[i][j] = max(cell_count_by_value, key=lambda key: cell_count_by_value[key])
 
+                output[i][j] = max(cell_count_by_value, key=lambda key: cell_count_by_value[key])
         self._create_tif(reference, output_tif, output)
 
         reference, output_ds = None, None
 
     def __count_after_classification(self, src_raster, reference, task_progress, progress_bar):
+        """
+        reclassify the data than count the number of times each value appears in each cell
+        :param src_raster:      the src data raster holding the original classification
+        :param reference:       the reference raster
+        :param task_progress:   id of the task associated with the calculation
+        :param progress_bar:    the progress bar to update
+        :return:                np array holding a dict with the count for each value on every cell
+        """
+
         rows = src_raster.RasterYSize
         cols = src_raster.RasterXSize
         __progress_bar_delta = 1 / (rows * cols)
@@ -78,13 +89,14 @@ class LandUseHandler(ConvertHandler):
                 # calculate the x,y coordinates and find the matching index on the reference raster
                 x, y = gdal_utils.calc_x_y(col, row, src_trans)
                 reference_col, reference_row = gdal_utils.calc_cell_index(reference_trans, x, y)
-                reference_col, reference_row = int(np.round(reference_col)), int(np.round(reference_row))
+                reference_col, reference_row = round(reference_col), round(reference_row)
 
                 if 0 <= reference_row < reference.RasterYSize and 0 <= reference_col < reference.RasterXSize:
                     output_count[self.__reclassify(src_data[row][col])][reference_row][reference_col] += 1
         return output_count
 
-    def __reclassify(self, value):
+    @staticmethod
+    def __reclassify(value):
         """
         get the reclassification of the data
         :param value:   the value to reclassify
