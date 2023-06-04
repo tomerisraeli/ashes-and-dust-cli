@@ -37,9 +37,19 @@ class ConfigurationValues:
                        "key": "pbl api key",
                        "default": "196384:fce99bdf-7a3d-4532-8386-191f924b7fa0"}
 
+        modis_api_user = {"section": "MODIS",
+                          "key": "modis API username",
+                          "default": "AshesAndDust"}
+
+        modis_api_password = {"section": "MODIS",
+                              "key": "modis API username",
+                              "default": "U9BHYztltgdBtYIH"}
+
         values = [
             population_density_value_key,
-            pbl_api_key
+            pbl_api_key,
+            modis_api_user,
+            modis_api_password
         ]
 
         @staticmethod

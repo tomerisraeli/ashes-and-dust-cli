@@ -1,3 +1,4 @@
+from data_handlers.download_handlers.modis_handler import ModisHandler
 from data_handlers.download_handlers.pbl_handler import PBLHandler
 from data_handlers.local_handlers.distance_to_water_handler import DistanceToWaterHandler
 from data_handlers.local_handlers.elevation_handler import ElevationHandler
@@ -18,14 +19,15 @@ DATE_FORMATS = formats = ["%Y",
 # lists of program handlers
 
 LOCAL_HANDLERS = [
-    PopulationDensityHandler(),
-    DistanceToWaterHandler(),
-    ElevationHandler(),
-    LandUseHandler(),
-    RoadsHandler()
+    # PopulationDensityHandler(),
+    # DistanceToWaterHandler(),
+    # ElevationHandler(),
+    # LandUseHandler(),
+    # RoadsHandler()
 ]
 DOWNLOAD_HANDLERS = [
-    PBLHandler()
+    # PBLHandler()
+    ModisHandler()
 ]
 
 # config values
