@@ -2,8 +2,9 @@ import functools
 import os.path
 import shutil
 from datetime import datetime, timedelta
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Any
 
+import geopandas
 from osgeo import gdal
 from rich.progress import track
 import rich
@@ -11,9 +12,10 @@ from modis_tools.auth import ModisSession
 from modis_tools.resources import CollectionApi, GranuleApi
 from modis_tools.granule_handler import GranuleHandler
 import xarray as xr
+from rioxarray import rioxarray
 
 from data_handlers.handlers_api.download_handler import DownloadHandler
-from utils import constants
+from utils import constants, gdal_utils, preprocess_utils
 
 
 class ModisHandler(DownloadHandler):
@@ -40,6 +42,7 @@ class ModisHandler(DownloadHandler):
     __MODIS_BBOX = [33, 28, 38, 36]  # the
     __MODIS_DATE_FORMAT = '%Y-%m-%d'
     __TIF_FILES_FORMAT = "%Y-%m-%d-%H-%M-%S"
+    __MODIS_FILES_PROJECTION = "GCTP_SNSOID"    # from the hdf projection
 
     def get_required_files_list(self, root_dir):
         # the modis handler doesn't require any file
@@ -67,9 +70,9 @@ class ModisHandler(DownloadHandler):
         temp_data_path = self.__generate_temp_data_path(path)
 
         self.__convert_files_to_tif(path_of_data_dir, temp_data_path)
-        for tile_grid, tile_shp, tile_name in self.CLIP_AND_REPROJECT_FILES:
-            self.__create_netcdf(temp_data_path, tile_grid, tile_shp, tile_name)
-        self.__clear_temp_data(temp_data_path)
+        # for tile_grid, tile_shp, tile_name in self.CLIP_AND_REPROJECT_FILES:
+        #     self.__create_netcdf(temp_data_path, tile_grid, tile_shp, tile_name)
+        # self.__clear_temp_data(temp_data_path)
 
         # TODO: for each file in data_dir, convert it to a tif holding the data of the tile
         #  it will be better if each file will generate 3 tiffs, one for each tile
@@ -95,6 +98,8 @@ class ModisHandler(DownloadHandler):
                 continue
 
             self.__convert_hdf_to_tif(full_hdf_path, full_tif_path)
+            self.__clip_and_reproject_file(full_tif_path, *self.__get_tile_grid_and_clip(tile))
+
         rich.print(f"converted to tiff, ignored files of {', '.join(kicked_tiles)}")
 
     def __create_netcdf(self, data_path: str, tile_grid: str, tile_shp: str, tile_name: str, output_path) -> None:
@@ -121,7 +126,7 @@ class ModisHandler(DownloadHandler):
         merged_data.to_netcdf(output_path)
 
     def __get_date_from_tif(self, tif_name: str) -> datetime:
-
+        pass
 
     @staticmethod
     def __clear_temp_data(data_path: str) -> None:
@@ -193,9 +198,38 @@ class ModisHandler(DownloadHandler):
         hdf_file = gdal.Open(hdf_file, gdal.GA_ReadOnly)
         dataset_file = hdf_file.GetSubDatasets()[0][0]
         dataset = gdal.Open(dataset_file, gdal.GA_ReadOnly)
-        gdal.Translate(path_of_output, dataset, format="GTiff")
 
-        dataset, hdf_file = None, None
+        gdal.Translate(path_of_output, dataset, format="GTiff", outputSRS="EPSG:2039", bandList=[1])
+
+        # output_raster = gdal.GetDriverByName("GTiff").Create(
+        #     path_of_output,
+        #     dataset.RasterXSize,
+        #     dataset.RasterYSize,
+        #     1,
+        #     gdal.GDT_Float32
+        # )
+        # output_raster.SetGeoTransform(dataset.GetGeoTransform())
+        # output_raster.SetProjection(dataset.GetProjection())
+        # output_raster.GetRasterBand(1).WriteArray(dataset.ReadAsArray()[0])
+
+
+        # output_raster = gdal.Translate(path_of_output, dataset, format="GTiff")
+        # output_raster.SetProjection(dataset.GetProjection())
+        dataset, hdf_file, output_raster = None, None, None
+
+    @staticmethod
+    def __clip_and_reproject_file(tif_file, tile_grid, tile_shp):
+        """
+        clip and reproject the given file
+        :param tif_file:    path of file to operate
+        :param tile_grid:   the grid to reproject to
+        :param tile_shp:    the shp to clip to
+        """
+
+        preprocess_utils.clip_and_reproject(
+            tif_file, tile_grid, tile_shp, tif_file,
+            # src_crs=ModisHandler.__MODIS_FILES_PROJECTION
+        )
 
     @staticmethod
     def __generate_tif_name(hdf_short_name: str, dir_of_tif: str) -> Tuple[str, str]:
@@ -228,3 +262,19 @@ class ModisHandler(DownloadHandler):
         """
 
         return [tile_name for _, _, tile_name in self.CLIP_AND_REPROJECT_FILES]
+
+    @functools.cache
+    def __get_tile_grid_and_clip(self, tile_name: str) -> Tuple[Any, Any]:
+        """
+        get the grid and clip objects of the given tile
+        :param tile_name:   the tile to get file for
+        :returns:           tuple of tile_grid and tile_chp
+        """
+
+        for tile_clip, tile_grid, current_tile_name in self.CLIP_AND_REPROJECT_FILES:
+            if tile_name == current_tile_name:
+                clip = geopandas.read_file(tile_clip)
+                grid = rioxarray.open_rasterio(tile_grid)
+                return grid, clip
+
+        raise KeyError(f"{tile_name} is not a valid tile name")

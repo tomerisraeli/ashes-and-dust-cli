@@ -18,19 +18,38 @@ def clip_and_reproject_one_file(src_path, dir_path, result_file_name, src_crs: s
 
     results_paths = []
     for tile_clip, tile_grid, tile_name in Handler.CLIP_AND_REPROJECT_FILES:
-        geodf = geopandas.read_file(tile_clip)
-        to_match = rioxarray.open_rasterio(tile_grid)
-        data = rioxarray.open_rasterio(src_path)
-        if src_crs:
-            data = data.rio.write_crs(src_crs, inplace=True)
-        # ensure .nc files have attribute crs
-        data = data.rio.reproject("EPSG:2039")
-        data = data.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
-        data = data.rio.reproject_match(to_match)
-        # data_reprojected = xds_repr_match.rio.reproject("EPSG:2039")
-
+        clip = geopandas.read_file(tile_clip)
+        grid = rioxarray.open_rasterio(tile_grid)
         path_of_result = os.path.join(dir_path, f"{result_file_name}_{tile_name}.nc".replace(" ", "_").lower())
         results_paths.append((tile_name, path_of_result))
-        data.to_netcdf(path_of_result)
+
+        clip_and_reproject(src_path, grid, clip, path_of_result, src_crs)
 
     return results_paths
+
+
+def clip_and_reproject(input_tif_path, grid, clip, output_tif_path, src_crs=None):
+    """
+    clip and reproject a single file
+    :param input_tif_path:  the path of file to operate
+    :param grid:            the grid to reproject to, rioxarray.open_rasterio()
+    :param clip:            the shp file to clip to, use geopandas.read_file()
+    :param output_tif_path: the path to save the result at
+    :param src_crs:         (optional) if given the crs of the file at src_path will be treated as the given crs
+    :returns:               None
+    """
+
+    print(f"grid: {type(grid)}")
+    print(f"clip: {type(clip)}")
+
+    data = rioxarray.open_rasterio(input_tif_path)
+    print(data)
+    if src_crs:
+        print("updateing crs")
+        data = data.rio.write_crs(src_crs, inplace=True)
+    # ensure .nc files have attribute crs
+    data = data.rio.reproject("EPSG:2039")
+
+    data = data.rio.clip(clip.geometry.values, clip.crs, drop=False, invert=False)  # clip the raster
+    data = data.rio.reproject_match(grid)
+    data.to_netcdf(output_tif_path)
