@@ -1,15 +1,16 @@
 import functools
 import os.path
+import shutil
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, List
 
-import h5py
 from osgeo import gdal
 from rich.progress import track
 import rich
 from modis_tools.auth import ModisSession
 from modis_tools.resources import CollectionApi, GranuleApi
 from modis_tools.granule_handler import GranuleHandler
+import xarray as xr
 
 from data_handlers.handlers_api.download_handler import DownloadHandler
 from utils import constants
@@ -18,18 +19,25 @@ from utils import constants
 class ModisHandler(DownloadHandler):
     """
     a handler for data downloaded from modis
+
+    to implement the modis handler protocol all you have to do is fill the _MODIS_DATA_<var> variables,
+    the NAME and DESCRIPTION. other than this, all the functions and vars are already implemented here
     """
 
-    # some modis constants should appear here
     SOURCE = "https://modis.gsfc.nasa.gov"
     NAME = "modis"  # TODO: move to NDVI, AOD
 
-    # TODO: change to ...
-    _MODIS_DATA_NAME = "MCD19A2"
-    _MODIS_DATA_VERSION = "006"
+    """
+    MODIS DATA VARIABLES
+    
+    
+    """
+    _MODIS_DATA_NAME: str = "MCD19A2"  # short name of data, used for modis query
+    _MODIS_DATA_VERSION: str = "006"  # the version of the data, used for modis query
+    _MODIS_DATA_BAND: int = 1  # the band the data is saved at on the hdf files from MODIS
 
     # MODIS CONSTANTS
-    __MODIS_BBOX = [33, 28, 38, 36]
+    __MODIS_BBOX = [33, 28, 38, 36]  # the
     __MODIS_DATE_FORMAT = '%Y-%m-%d'
     __TIF_FILES_FORMAT = "%Y-%m-%d-%H-%M-%S"
 
@@ -59,6 +67,9 @@ class ModisHandler(DownloadHandler):
         temp_data_path = self.__generate_temp_data_path(path)
 
         self.__convert_files_to_tif(path_of_data_dir, temp_data_path)
+        for tile_grid, tile_shp, tile_name in self.CLIP_AND_REPROJECT_FILES:
+            self.__create_netcdf(temp_data_path, tile_grid, tile_shp, tile_name)
+        self.__clear_temp_data(temp_data_path)
 
         # TODO: for each file in data_dir, convert it to a tif holding the data of the tile
         #  it will be better if each file will generate 3 tiffs, one for each tile
@@ -67,7 +78,7 @@ class ModisHandler(DownloadHandler):
 
     def __convert_files_to_tif(self, path_of_data_dir: str, temp_data_path: str) -> None:
         """
-        convert all necessary hdf files to tiffs
+        convert all necessary hdf files to tiff
         :param path_of_data_dir:    dir of hdf files
         :param temp_data_path:      dir of tiffs
         """
@@ -83,8 +94,44 @@ class ModisHandler(DownloadHandler):
                 kicked_tiles.add(tile)
                 continue
 
-            ModisHandler.__convert_hdf_to_tif(full_hdf_path, full_tif_path)
+            self.__convert_hdf_to_tif(full_hdf_path, full_tif_path)
         rich.print(f"converted to tiff, ignored files of {', '.join(kicked_tiles)}")
+
+    def __create_netcdf(self, data_path: str, tile_grid: str, tile_shp: str, tile_name: str, output_path) -> None:
+        """
+        merge all the tif files in the given directory to one netcdf file holding all the data of the tile
+        :param data_path:   dir of all tif file to convert
+        :param tile_grid:   path to tile grid
+        :param tile_shp:    path to tile shp file (clip)
+        :param tile_name:   tile name
+        :param output_path: path of output - results will be saved at this file
+        :returns:           None
+        """
+        rich.print("merging data to .nc file, this may take some time")
+        modified_datasets = []
+        for file_name in os.listdir(data_path):
+            if ".tif" not in file_name:
+                continue
+
+            with xr.open_dataset(os.path.join(data_path, file_name)) as data:
+                data['time'] = [self.__get_date_from_tif(file_name)]
+                modified_datasets.append(data)
+
+        merged_data = xr.concat(modified_datasets, dim='time')
+        merged_data.to_netcdf(output_path)
+
+    def __get_date_from_tif(self, tif_name: str) -> datetime:
+
+
+    @staticmethod
+    def __clear_temp_data(data_path: str) -> None:
+        """
+        clear all temp data created from memory
+        :param data_path:   dir of all tif files to remove
+        :returns:           None
+        """
+
+        shutil.rmtree(data_path)
 
     def __generate_data_path(self, path: str) -> str:
         """
@@ -144,17 +191,14 @@ class ModisHandler(DownloadHandler):
         """
 
         hdf_file = gdal.Open(hdf_file, gdal.GA_ReadOnly)
+        dataset_file = hdf_file.GetSubDatasets()[0][0]
+        dataset = gdal.Open(dataset_file, gdal.GA_ReadOnly)
+        gdal.Translate(path_of_output, dataset, format="GTiff")
 
-        # Get the specific band you want to convert
-        band_number = 1  # Change this to the desired band number
-        band = hdf_file.GetRasterBand(band_number)
+        dataset, hdf_file = None, None
 
-        driver = gdal.GetDriverByName('GTiff')
-        output_dataset = driver.CreateCopy(path_of_output, band)
-
-        band, hdf_file, output_dataset= None, None, None
-
-    def __generate_tif_name(self, hdf_short_name: str, dir_of_tif: str) -> Tuple[str, str]:
+    @staticmethod
+    def __generate_tif_name(hdf_short_name: str, dir_of_tif: str) -> Tuple[str, str]:
         """
         given the hdf short name (as downloaded from NASA), generate the path of matching tif
         :param hdf_short_name:  name of hdf file
