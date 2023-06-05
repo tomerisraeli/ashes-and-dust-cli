@@ -195,27 +195,14 @@ class ModisHandler(DownloadHandler):
         :param path_of_output:  path to save the result at
         """
 
-        hdf_file = gdal.Open(hdf_file, gdal.GA_ReadOnly)
-        dataset_file = hdf_file.GetSubDatasets()[0][0]
-        dataset = gdal.Open(dataset_file, gdal.GA_ReadOnly)
+        kwargs = {'format': 'GTiff', 'dstSRS': 'EPSG:2039'}  # convert to new israel coords
 
-        gdal.Translate(path_of_output, dataset, format="GTiff", outputSRS="EPSG:2039", bandList=[1])
+        dataset = gdal.Open(hdf_file, gdal.GA_ReadOnly)
+        subdataset = gdal.Open(dataset.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
+        sdsdict = dataset.GetMetadata()  # get metdata
+        print(sdsdict)
 
-        # output_raster = gdal.GetDriverByName("GTiff").Create(
-        #     path_of_output,
-        #     dataset.RasterXSize,
-        #     dataset.RasterYSize,
-        #     1,
-        #     gdal.GDT_Float32
-        # )
-        # output_raster.SetGeoTransform(dataset.GetGeoTransform())
-        # output_raster.SetProjection(dataset.GetProjection())
-        # output_raster.GetRasterBand(1).WriteArray(dataset.ReadAsArray()[0])
-
-
-        # output_raster = gdal.Translate(path_of_output, dataset, format="GTiff")
-        # output_raster.SetProjection(dataset.GetProjection())
-        dataset, hdf_file, output_raster = None, None, None
+        ds = gdal.Warp(destNameOrDestDS=path_of_output, srcDSOrSrcDSTab=subdataset, **kwargs)
 
     @staticmethod
     def __clip_and_reproject_file(tif_file, tile_grid, tile_shp):
