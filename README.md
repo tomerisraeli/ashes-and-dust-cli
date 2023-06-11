@@ -2,13 +2,18 @@
 
 ## general
 ### dependencies and versions
-the project was developed using python 3.9.6 and requires the libraries specified at 
+the project was developed using python 3.11.3 and requires the libraries specified at 
 [requirements.txt](requirements.txt)
 ```bash
 pip install -r requirements.txt
 ``` 
-to install them all
-
+to install them all. 
+you should also install ```gdal``` on your system. it may be better to install it using ```conda``` or using ```brew``` (on macOS systems).
+it is recommended to start with installing ```gdal``` as this may take some time and effort. after making sure gdal is installed using 
+```python
+from osgeo import gdal
+```
+you may install all other requirements
 ### project CLI
 after installing all the requirements, you can run 
 ```bash
