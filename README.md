@@ -92,3 +92,8 @@ we also made sure that the data saved on each file describes the same locations 
 all tile resources are available at [data_handlers/tiles](data_handlers/tiles) 
 - shp file that holds the tile intersection with Israel, use those to clip the data
 - tif file that describes the tile grid
+
+## Project's State
+- the ModisHandler(isn't merged to the main branch and available on the modis_handler_branch) isn't working due to problems with gdal versions that cant open HDF4 files
+- the PBLHandler tend to fail when large amounts of data are merged to one nc file
+- the structure of the projects exists and many handlers are implemented

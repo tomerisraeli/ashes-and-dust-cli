@@ -9,7 +9,7 @@ from utils import gdal_utils
 
 class RoadsHandler(ConvertHandler):
     SOURCE: str = "local"
-    NAME: str = "distance form highways"
+    NAME: str = "distance from highways"
     DESCRIPTION: str = "distance between the center of the cell to the closest major road in israel"
 
     _NECESSARY_FILES = [
