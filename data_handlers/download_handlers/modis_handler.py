@@ -70,14 +70,9 @@ class ModisHandler(DownloadHandler):
         temp_data_path = self.__generate_temp_data_path(path)
 
         self.__convert_files_to_tif(path_of_data_dir, temp_data_path)
-        # for tile_grid, tile_shp, tile_name in self.CLIP_AND_REPROJECT_FILES:
-        #     self.__create_netcdf(temp_data_path, tile_grid, tile_shp, tile_name)
-        # self.__clear_temp_data(temp_data_path)
-
-        # TODO: for each file in data_dir, convert it to a tif holding the data of the tile
-        #  it will be better if each file will generate 3 tiffs, one for each tile
-        #  when all the files are saved as tiffs
-        #  save the tiffs on the temp_data_path dir
+        for tile_grid, tile_shp, tile_name in self.CLIP_AND_REPROJECT_FILES:
+            self.__create_netcdf(temp_data_path, tile_grid, tile_shp, tile_name)
+        self.__clear_temp_data(temp_data_path)
 
     def __convert_files_to_tif(self, path_of_data_dir: str, temp_data_path: str) -> None:
         """
@@ -85,6 +80,9 @@ class ModisHandler(DownloadHandler):
         :param path_of_data_dir:    dir of hdf files
         :param temp_data_path:      dir of tiffs
         """
+
+        # TODO: implement this function
+
         kicked_tiles = set()
         for short_hdf_path in track(os.listdir(path_of_data_dir), description="converting hdf files to tif"):
             if ".hdf" not in short_hdf_path:
