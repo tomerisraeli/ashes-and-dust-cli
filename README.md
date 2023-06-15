@@ -24,8 +24,8 @@ to see all CLI commands. to see further information on each cmd you can use
 python aad.py download --help
 ```
 for example
-#### CLI input
-when running different CLI functions you might be asked to enter a path to the root directory of the data. 
+#### project input
+when running different functions you might be asked to enter a path to the root directory of the data. 
 what is this directory?
 
 root directory - the path to the directory holding all project data, when running the download function of CLI, 
@@ -45,6 +45,20 @@ and finally, preprocess the data,
 ```python
 aad.py preprocess <path to data dir>
 ```
+#### Download and Preprocess data using Python
+first, import the files needed
+```python 
+import ashes_and_dust
+```
+Then, download the data using 
+```python
+ashes_and_dust.download(<path>, <start date>, <end date>, <overwrite>)
+```
+and finally, preprocess the data,
+```python
+ashes_and_dust.preprocess(<path>)
+```
+that's it!
 ## project structure
 the main file of the project is [aad.py](aad.py) (aad - ashes and dust), running this file will start the CLI. 
 other than the main file, the basic implementations of ashes and dust functions are on the 
