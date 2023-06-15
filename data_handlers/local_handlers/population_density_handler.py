@@ -10,7 +10,7 @@ from utils.gdal_utils import get_cell_geometry
 class PopulationDensityHandler(ConvertHandler):
     SOURCE: str = "local"
     NAME: str = "Population Density"
-    DESCRIPTION: str = "the population density over israel in 2011, units=1000[peoples]"
+    DESCRIPTION: str = "the population density over israel in 2011, units: 1[peoples]"
 
     _NECESSARY_FILES = [
         "LAMS2011_2039.shp",
@@ -70,6 +70,7 @@ class PopulationDensityHandler(ConvertHandler):
 
             # we now want to get only the cells that are in the bounding box
             filtered_cells = [cell for cell in cells if x_min <= cell[2] <= x_max and y_min <= cell[3] <= y_max]
+            # filtered_cells = cells
 
             feature_intersections_progress = progress_bar.add_task("[grey]current polygon calculation ",
                                                                    total=len(filtered_cells))
@@ -79,10 +80,12 @@ class PopulationDensityHandler(ConvertHandler):
             for row, col, _, _ in filtered_cells:
                 cell_geom = get_cell_geometry(col, row, transform)
 
-                intersection = geometry.Intersection(cell_geom)
-                weight = intersection.Area() / feature_area
-                output_data[row][col] += np.float32(weight * value)
-                progress_bar.update(feature_intersections_progress, advance=1)
+                intersection = cell_geom.Intersection(geometry)
+                int_area = intersection.Area()
+                if not int_area <= 0:
+                    weight = int_area / feature_area
+                    output_data[row][col] += np.float32(weight * value * 100000)
+                    progress_bar.update(feature_intersections_progress, advance=1)
 
             progress_bar.remove_task(feature_intersections_progress)
             progress_bar.update(task_progress, advance=__task_advancement)

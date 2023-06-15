@@ -19,13 +19,13 @@ DATE_FORMATS = formats = ["%Y",
 
 LOCAL_HANDLERS = [
     PopulationDensityHandler(),
-    DistanceToWaterHandler(),
-    ElevationHandler(),
-    LandUseHandler(),
-    RoadsHandler()
+    # DistanceToWaterHandler(),
+    # ElevationHandler(),
+    # LandUseHandler(),
+    # RoadsHandler()
 ]
 DOWNLOAD_HANDLERS = [
-    PBLHandler()
+    # PBLHandler()
 ]
 
 # config values

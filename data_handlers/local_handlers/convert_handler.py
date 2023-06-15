@@ -41,9 +41,9 @@ class ConvertHandler(LocalHandler):
                                              progress
                                              )
 
-                clip_file = geopandas.read_file(tile_clip)
+                # clip_file = geopandas.read_file(tile_clip)
                 raster = rioxarray.open_rasterio(tif_path)
-                raster = raster.rio.clip(clip_file.geometry.values, clip_file.crs, drop=False, invert=False)
+                # raster = raster.rio.clip(clip_file.geometry.values, clip_file.crs, drop=False, invert=False)
                 raster = raster.rio.reproject("EPSG:2039")
                 raster.to_netcdf(nc_path)
 

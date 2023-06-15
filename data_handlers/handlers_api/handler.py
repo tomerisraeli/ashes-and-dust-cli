@@ -9,9 +9,13 @@ class Handler:
 
     CLIP_AND_REPROJECT_FILES = [
         # (clip file - shp, reproject file - tif, tile name)
-        ("data_handlers/tiles/h21v06_crs2039.shp", "data_handlers/tiles/h21v06.tif", "h21v06"),
-        ("data_handlers/tiles/h21v05_crs2039.shp", "data_handlers/tiles/h21v05.tif", "h21v05"),
-        ("data_handlers/tiles/h20v05_crs2039.shp", "data_handlers/tiles/h20v05.tif", "h20v05")
+        # ("data_handlers/tiles/h21v06_crs2039.shp", "data_handlers/tiles/h21v06.tif", "h21v06"),
+        # ("data_handlers/tiles/h21v05_crs2039.shp", "data_handlers/tiles/h21v05.tif", "h21v05"),
+        # ("data_handlers/tiles/h20v05_crs2039.shp", "data_handlers/tiles/h20v05.tif", "h20v05"),
+        ("",
+         "/Users/tomerisraeli/Library/CloudStorage/GoogleDrive-tomer.israeli.43@gmail.com/My Drive/year_2/Magdad/נתונים/data/dist_to_water/dist_massive_water.tif",
+         "WORLD"),
+
     ]
 
     def preprocess(self, path):
@@ -29,4 +33,3 @@ class Handler:
         :return:            a list of paths as str
         """
         ...
-

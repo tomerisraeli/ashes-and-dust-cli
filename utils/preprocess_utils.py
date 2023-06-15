@@ -18,14 +18,14 @@ def clip_and_reproject_one_file(src_path, dir_path, result_file_name, src_crs: s
 
     results_paths = []
     for tile_clip, tile_grid, tile_name in Handler.CLIP_AND_REPROJECT_FILES:
-        geodf = geopandas.read_file(tile_clip)
+        # geodf = geopandas.read_file(tile_clip)
         to_match = rioxarray.open_rasterio(tile_grid)
         data = rioxarray.open_rasterio(src_path)
         if src_crs:
             data = data.rio.write_crs(src_crs, inplace=True)
         # ensure .nc files have attribute crs
         data = data.rio.reproject("EPSG:2039")
-        data = data.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
+        # data = data.rio.clip(geodf.geometry.values, geodf.crs, drop=False, invert=False)  # clip the raster
         data = data.rio.reproject_match(to_match)
         # data_reprojected = xds_repr_match.rio.reproject("EPSG:2039")
 
