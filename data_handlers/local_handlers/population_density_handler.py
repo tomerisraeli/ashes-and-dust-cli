@@ -84,12 +84,18 @@ class PopulationDensityHandler(ConvertHandler):
                 int_area = intersection.Area()
                 if not int_area <= 0:
                     weight = int_area / feature_area
-                    output_data[row][col] += np.float32(weight * value * 100000)
+                    output_data[row][col] += np.float32(weight * value * 1000)
                     progress_bar.update(feature_intersections_progress, advance=1)
+
+
+
+
+
 
             progress_bar.remove_task(feature_intersections_progress)
             progress_bar.update(task_progress, advance=__task_advancement)
 
+        output_data = np.log(output_data)
         self._create_tif(raster_ds, output_tif, output_data)
 
         # free objects and close them

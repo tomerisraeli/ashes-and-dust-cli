@@ -52,7 +52,11 @@ if __name__ == '__main__':
     for index, data in enumerate(all_data):
         with rasterio.open(data.path, "r") as ras:
 
-            kwargs = {"cmap": "Greys"}
+            if index == 3:
+
+                kwargs = {"vmin":0, "vmax": 1}
+
+            kwargs = {}#{"cmap": "Greys"}
             # if index == 3:
             #     kwargs = {"vmin": 0, "vmax": 80, "cmap": 'Greys_r'}
             show(ras, ax=axes[index], title=data.name, **kwargs)
